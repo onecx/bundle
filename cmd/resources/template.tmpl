@@ -1,0 +1,12 @@
+# {{ .Name }} {{ .Base.Version }}...{{ .Version -}}
+{{ range $product_key, $product := .Products }}{{ if $product.Components }}
+
+## {{ $product.Name }} {{ $product.Base.Bundle.Version }}...{{ $product.Head.Bundle.Version -}}
+{{ range $component_key, $component := $product.Components }}{{ if $component.Changes }}
+
+### {{ $component.Name }} [{{ $component.Base.Version }}...{{ $component.Head.Version }}]({{ $component.Compare.HTMLURL }})
+{{ range $change := $component.Changes }}{{ if $change.IsPR }}
+* [{{ $change.PR.Number }}]({{ $change.PR.HTMLURL }}) - {{ $change.PR.Title }} {{ range $label := $change.PR.Labels }}`{{ $label }}` {{ end -}}
+{{- end -}}{{- end -}}
+{{- end -}}{{- end }}
+{{- end -}}{{- end -}}
