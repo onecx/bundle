@@ -15,9 +15,9 @@ type Product struct {
 }
 
 type Bundle struct {
-	Name     string             `yaml:"name"`
-	Version  string             `yaml:"version"`
-	Products map[string]Product `yaml:"products"`
+	Name     string              `yaml:"name"`
+	Version  string              `yaml:"version"`
+	Products map[string]*Product `yaml:"products"`
 }
 
 func LoadBundleFileFilter(path string, ignore []string) (*Bundle, error) {

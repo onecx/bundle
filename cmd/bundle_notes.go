@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"html/template"
 	"log/slog"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/onecx/bundle/bundle"
 	"github.com/onecx/bundle/client"
@@ -20,11 +22,16 @@ import (
 //go:embed resources
 var resources embed.FS
 
+const defaultTemplate = "resources/template.tmpl"
+
 type bundleNotesFlags struct {
 	BundleFlags   bundleFlags `mapstructure:",squash"`
 	PathChartLock string      `mapstructure:"path-chart-lock"`
 	Cache         bool        `mapstructure:"cache"`
 	CacheDir      string      `mapstructure:"cache-dir"`
+	MainVersion   string      `mapstructure:"main-version"`
+	TemplateFile  string      `mapstructure:"template-file"`
+	OutputFile    string      `mapstructure:"output-file"`
 }
 
 func createBundleNotes() *cobra.Command {
@@ -41,7 +48,10 @@ func createBundleNotes() *cobra.Command {
 
 	addFlag(cmd, "path-chart-lock", "a", "helm/Chart.lock", "path to the Chart.lock file")
 	addFlag(cmd, "cache-dir", "d", ".cache/bundle", "bundle cache directory")
+	addFlag(cmd, "template-file", "p", "template.tmpl", "go-template file for release notes")
+	addFlag(cmd, "output-file", "o", "", "output file name")
 	addBoolFlag(cmd, "cache", "e", true, "enabled or disable cache")
+	addFlag(cmd, "main-version", "m", "main", "main version constant. If product has main-version, components version will be also overwrite to main-version")
 
 	return cmd
 }
@@ -59,18 +69,49 @@ func executeNotes(flags bundleNotesFlags) {
 	// create product components
 	slog.Info("Create product components.", slog.String("name", req.Name()), slog.String("version", req.Version()))
 	for _, product := range req.products {
+
+		mainVersion := strings.Compare(product.head.bundle.Version, flags.MainVersion) == 0
+		slog.Debug("Product with main-version for release notes.", slog.String("product", product.name), slog.Bool("status", mainVersion))
 		for _, dep := range product.head.chartLock.Dependencies {
+			if mainVersion {
+				dep.Version = flags.MainVersion
+			}
 			product.components[dep.Name] = &Component{
 				name:         dep.Name,
 				head:         &dep,
+				base:         nil,
 				pullRequests: make(map[string][]*client.PullRequest),
 				changes:      make([]*Change, 0),
 			}
 		}
 		if product.base != nil {
 			for _, dep := range product.base.chartLock.Dependencies {
-				if d, e := product.components[dep.Name]; e {
-					d.base = &dep
+				d, e := product.components[dep.Name]
+				if e {
+					if strings.Compare(d.head.Version, dep.Version) == 0 {
+						slog.Debug("Exclude from release notes: Component in the product is the same version", slog.String("product", product.name), slog.String("component", dep.Name), slog.String("version", dep.Version))
+						delete(product.components, dep.Name)
+					} else {
+						d.base = &dep
+					}
+				}
+
+			}
+		}
+
+		for _, component := range product.components {
+			if component.base == nil {
+
+				firstCommit := findFirstCommit(req.client, flags, product, component)
+				if firstCommit == nil {
+					slog.Error("No first commit found for component", slog.String("product", product.name), slog.String("component", component.name))
+					panic(errors.New("no first commit found for component"))
+				}
+				h := component.head
+				component.base = &helm.Dependency{
+					Name:       h.Name,
+					Repository: h.Repository,
+					Version:    firstCommit.SHA,
 				}
 			}
 		}
@@ -84,7 +125,7 @@ func executeNotes(flags bundleNotesFlags) {
 			cacheFile := fmt.Sprintf("%s/products/%s/%s_%s_%s.json", flags.CacheDir, product.name, component.name, component.base.Version, component.head.Version)
 			var compare *client.CommitsComparison
 			if flags.Cache && util.FileExists(cacheFile) {
-				slog.Info("Load product component compare from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
+				slog.Debug("Load product component compare from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
 				var tmp client.CommitsComparison
 				util.LoadJsonData(cacheFile, &tmp)
 				compare = &tmp
@@ -116,15 +157,12 @@ func executeNotes(flags bundleNotesFlags) {
 
 				cacheFile := fmt.Sprintf("%s/products/%s/%s_%s.json", flags.CacheDir, product.name, component.name, commit.SHA)
 				var pullRequests []*client.PullRequest
-
 				if flags.Cache && util.FileExists(cacheFile) {
-					slog.Info("Load product component pull-request from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
+					slog.Debug("Load product component pull-request from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
 					tmp := make([]*client.PullRequest, 0)
 					util.LoadJsonData(cacheFile, &tmp)
 					pullRequests = tmp
-				}
-
-				if len(pullRequests) == 0 {
+				} else {
 					tmp, err := req.client.PullRequestByCommitRepo(owner, component.name, commit.SHA)
 					if err != nil {
 						panic(err)
@@ -151,19 +189,64 @@ func executeNotes(flags bundleNotesFlags) {
 
 	// generate template
 	slog.Info("Generate template for bundle.", slog.String("name", req.Name()), slog.String("version", req.Version()))
-	tmp, err := template.ParseFS(resources, "resources/template.tmpl")
-	if err != nil {
-		panic(err)
+
+	var temp *template.Template
+	if util.FileExists(flags.TemplateFile) {
+		slog.Info("Release notes template file", slog.String("template", flags.TemplateFile))
+		tmp, err := template.ParseFiles(flags.TemplateFile)
+		if err != nil {
+			panic(err)
+		}
+		temp = tmp
+	} else {
+		slog.Info("Release notes default template", slog.String("template", defaultTemplate))
+		tmp, err := template.ParseFS(resources, defaultTemplate)
+		if err != nil {
+			panic(err)
+		}
+		temp = tmp
 	}
+
 	var tpl bytes.Buffer
-	err = tmp.Execute(&tpl, req)
+	err := temp.Execute(&tpl, req)
 	if err != nil {
 		panic(err)
 	}
 	content := tpl.Bytes()
-	if err := util.CreateFile(fmt.Sprintf("%s-%s.md", req.Name(), req.Version()), content); err != nil {
+	outputFile := flags.OutputFile
+	if len(outputFile) == 0 {
+		outputFile = fmt.Sprintf("%s-%s.md", req.Name(), req.Version())
+	}
+	if err := util.CreateFile(outputFile, content); err != nil {
 		panic(err)
 	}
+}
+
+func findFirstCommit(c client.ClientService, flags bundleNotesFlags, product *Product, component *Component) *client.Commit {
+
+	cacheFile := fmt.Sprintf("%s/products/%s/%s_first_commit.json", flags.CacheDir, product.name, component.name)
+	var commit *client.Commit
+	if flags.Cache && util.FileExists(cacheFile) {
+		slog.Debug("Load component first commit from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
+		var tmp client.Commit
+		util.LoadJsonData(cacheFile, &tmp)
+		commit = &tmp
+	}
+	if commit == nil {
+		owner := c.GetOwner(product.head.bundle.Repo)
+		tmp, err := c.FirstCommit(owner, component.name)
+		if err != nil {
+			panic(err)
+		}
+		commit = tmp
+	}
+	if flags.Cache && !util.FileExists(cacheFile) {
+		if err := util.CreateJsonFile(cacheFile, commit); err != nil {
+			panic(err)
+		}
+	}
+
+	return commit
 }
 
 func NewRequest(flags bundleNotesFlags) *Request {
@@ -188,16 +271,28 @@ func NewRequest(flags bundleNotesFlags) *Request {
 		panic(errors.New("service client is null"))
 	}
 
+	if strings.Compare(head.Version, base.Version) == 0 {
+		slog.Warn("Bundle are the same versions", slog.String("head", head.Version), slog.String("base", base.Version))
+		os.Exit(0)
+	}
+
 	products := make(map[string]*Product)
 	for key, value := range head.Products {
 		b := base.Products[key]
-
+		if b == nil {
+			slog.Debug("Exclude from release notes: Product not found in 'base' bundle.", slog.String("product", key))
+			continue
+		}
+		if strings.Compare(value.Version, b.Version) == 0 {
+			slog.Debug("Exclude from release notes: Product are same version.", slog.String("product", key), slog.String("product", value.Version))
+			continue
+		}
 		tmp := &Product{
 			key:        key,
 			name:       value.Name,
 			components: make(map[string]*Component),
-			base:       loadProductData(flags, client, &b, flags.PathChartLock),
-			head:       loadProductData(flags, client, &value, flags.PathChartLock),
+			base:       loadProductData(flags, client, b, flags.PathChartLock),
+			head:       loadProductData(flags, client, value, flags.PathChartLock),
 		}
 		products[key] = tmp
 	}
@@ -212,12 +307,15 @@ func NewRequest(flags bundleNotesFlags) *Request {
 }
 
 func loadProductData(flags bundleNotesFlags, client client.ClientService, product *bundle.Product, path string) *ProductData {
-	cacheFile := flags.CacheDir + "/products/" + product.Name + "/" + product.Version + "/" + path
+	if product == nil {
+		return nil
+	}
+	cacheFile := fmt.Sprintf("%s/products/%s/%s/%s", flags.CacheDir, product.Name, product.Version, path)
 	var data []byte
 
 	if flags.Cache {
 		if util.FileExists(cacheFile) {
-			slog.Info("Load Chart.lock from cache.", slog.String("product", product.Name), slog.String("version", product.Version), slog.String("cache", cacheFile))
+			slog.Debug("Load Chart.lock from cache.", slog.String("product", product.Name), slog.String("version", product.Version), slog.String("cache", cacheFile))
 			tmp, err := util.LoadFile(cacheFile)
 			if err != nil {
 				panic(err)

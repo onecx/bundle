@@ -6,9 +6,9 @@ import (
 
 type bundleFlags struct {
 	GithubToken string   `mapstructure:"github-token"`
-	BundleFile  string   `mapstructure:"file"`
+	BundleFile  string   `mapstructure:"head"`
 	Bundlebase  string   `mapstructure:"base"`
-	Ignore      []string `mapstructure:"ignore"`
+	Ignore      []string `mapstructure:"ignore-products"`
 }
 
 func createBundleCmd() *cobra.Command {
@@ -20,9 +20,9 @@ func createBundleCmd() *cobra.Command {
 	}
 
 	addFlag(cmd, "github-token", "t", "", "github access token")
-	addFlag(cmd, "file", "f", "Bundle.yaml", "bundle file")
+	addFlag(cmd, "head", "f", "Bundle.yaml", "head bundle file")
 	addFlag(cmd, "base", "b", "", "base bundle file")
-	addSliceFlag(cmd, "ignore", "i", []string{}, "ignore bundle products")
+	addSliceFlag(cmd, "ignore-products", "i", []string{}, "ignore bundle products")
 
 	addChildCmd(cmd, createBundleDiff())
 	addChildCmd(cmd, createBundleNotes())

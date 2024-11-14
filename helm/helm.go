@@ -24,6 +24,6 @@ func CreateChartLock(data []byte) (*ChartLock, error) {
 		slog.Error("Error unmarshal chart lock data", slog.Any("error", err))
 		return nil, err
 	}
-	slog.Debug("Chart locks created from data.", slog.String("content", string(data)))
+	slog.Debug("Chart locks created from data.")
 	return &chartLock, nil
 }

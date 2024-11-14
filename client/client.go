@@ -33,4 +33,5 @@ type ClientService interface {
 	PullRequestByCommitRepo(owner, repo, sha string) ([]*PullRequest, error)
 	DownloadFile(repository, version, file string) ([]byte, error)
 	CompareCommitsRepo(owner, repo, base, head string) (*CommitsComparison, error)
+	FirstCommit(owner, repo string) (*Commit, error)
 }

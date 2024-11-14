@@ -50,7 +50,7 @@ func CreateFile(filename string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	slog.Info("File created", slog.String("file", filename))
+	slog.Debug("File created", slog.String("file", filename))
 	return nil
 }
 

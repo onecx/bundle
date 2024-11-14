@@ -32,7 +32,7 @@ func (g *githubClientService) PullRequestByCommitRepo(owner, repo, sha string) (
 	slog.Info("Pull-requests for commit", slog.String("owner", owner), slog.String("repo", repo), slog.String("sha", sha))
 	tmp, _, err := g.client.PullRequests.ListPullRequestsWithCommit(g.ctx, owner, repo, sha, nil)
 	if err != nil {
-		slog.Info("Error list all pull-requests for commit", slog.String("owner", owner), slog.String("repo", repo), slog.String("sha", sha))
+		slog.Error("Error list all pull-requests for commit", slog.String("owner", owner), slog.String("repo", repo), slog.String("sha", sha))
 		return nil, err
 	}
 
@@ -67,6 +67,40 @@ func labes2String(labels []*gh.Label) []string {
 		}
 	}
 	return result
+}
+
+func (g *githubClientService) FirstCommit(owner, repo string) (*client.Commit, error) {
+	slog.Info("Find first commit of repository", slog.String("owner", owner), slog.String("repo", repo))
+
+	opt := &gh.CommitsListOptions{
+		ListOptions: gh.ListOptions{
+			PerPage: 1,
+		},
+	}
+	list, response, err := g.client.Repositories.ListCommits(g.ctx, owner, repo, opt)
+	if err != nil {
+		slog.Error("Errorfind first commit of repository [1]", slog.String("owner", owner), slog.String("repo", repo))
+		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	opt.ListOptions.Page = response.LastPage
+	result, _, err := g.client.Repositories.ListCommits(g.ctx, owner, repo, opt)
+	if err != nil {
+		slog.Error("Errorfind first commit of repository [2]", slog.String("owner", owner), slog.String("repo", repo))
+		return nil, err
+	}
+	if len(result) == 0 {
+		return nil, nil
+	}
+	commit := result[0]
+	return &client.Commit{
+		SHA:     commit.GetSHA(),
+		HTMLURL: commit.GetHTMLURL(),
+		Message: commit.GetCommit().GetMessage(),
+	}, nil
 }
 
 func (g *githubClientService) CompareCommitsRepo(owner, repo, base, head string) (*client.CommitsComparison, error) {
