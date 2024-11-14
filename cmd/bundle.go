@@ -20,7 +20,7 @@ func createBundleCmd() *cobra.Command {
 	}
 
 	addFlag(cmd, "github-token", "t", "", "github access token")
-	addFlag(cmd, "head", "f", "Bundle.yaml", "head bundle file")
+	addFlag(cmd, "head", "f", "", "head bundle file")
 	addFlag(cmd, "base", "b", "", "base bundle file")
 	addSliceFlag(cmd, "ignore-products", "i", []string{}, "ignore bundle products")
 

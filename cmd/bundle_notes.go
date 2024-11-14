@@ -127,7 +127,10 @@ func executeNotes(flags bundleNotesFlags) {
 			if flags.Cache && util.FileExists(cacheFile) {
 				slog.Debug("Load product component compare from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
 				var tmp client.CommitsComparison
-				util.LoadJsonData(cacheFile, &tmp)
+				err := util.LoadJsonData(cacheFile, &tmp)
+				if err != nil {
+					panic(err)
+				}
 				compare = &tmp
 			}
 			if compare == nil {
@@ -160,7 +163,10 @@ func executeNotes(flags bundleNotesFlags) {
 				if flags.Cache && util.FileExists(cacheFile) {
 					slog.Debug("Load product component pull-request from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
 					tmp := make([]*client.PullRequest, 0)
-					util.LoadJsonData(cacheFile, &tmp)
+					err := util.LoadJsonData(cacheFile, &tmp)
+					if err != nil {
+						panic(err)
+					}
 					pullRequests = tmp
 				} else {
 					tmp, err := req.client.PullRequestByCommitRepo(owner, component.name, commit.SHA)
@@ -229,7 +235,10 @@ func findFirstCommit(c client.ClientService, flags bundleNotesFlags, product *Pr
 	if flags.Cache && util.FileExists(cacheFile) {
 		slog.Debug("Load component first commit from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
 		var tmp client.Commit
-		util.LoadJsonData(cacheFile, &tmp)
+		err := util.LoadJsonData(cacheFile, &tmp)
+		if err != nil {
+			panic(err)
+		}
 		commit = &tmp
 	}
 	if commit == nil {
