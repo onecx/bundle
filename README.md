@@ -3,7 +3,7 @@
 Bundle delivery tool
 
 [![License](https://img.shields.io/github/license/onecx/bundle?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/onecx/bundle/master.yaml?logo=github&style=for-the-badge)](https://github.com/onecx/bundle/actions?query=workflow%3Abuild)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/onecx/bundle/main.yaml?logo=github&style=for-the-badge)](https://github.com/onecx/bundle/actions?query=workflow%3Abuild)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/onecx/bundle?logo=github&style=for-the-badge)](https://github.com/onecx/bundle/releases/latest)
 
 tasks:
