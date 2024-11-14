@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/onecx/bundle/bundle"
+	bundle "github.com/onecx/bundle/api"
 	"github.com/onecx/bundle/client"
 	"github.com/onecx/bundle/github"
 	"github.com/onecx/bundle/helm"

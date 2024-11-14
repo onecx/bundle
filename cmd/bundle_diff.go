@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/onecx/bundle/bundle"
+	bundle "github.com/onecx/bundle/api"
 	"github.com/spf13/cobra"
 )
 
