@@ -25,13 +25,14 @@ var resources embed.FS
 const defaultTemplate = "resources/template.tmpl"
 
 type bundleNotesFlags struct {
-	BundleFlags   bundleFlags `mapstructure:",squash"`
-	PathChartLock string      `mapstructure:"path-chart-lock"`
-	NoCache       bool        `mapstructure:"no-cache"`
-	CacheDir      string      `mapstructure:"cache-dir"`
-	MainVersion   string      `mapstructure:"main-version"`
-	TemplateFile  string      `mapstructure:"template-file"`
-	OutputFile    string      `mapstructure:"output-file"`
+	BundleFlags        bundleFlags `mapstructure:",squash"`
+	PathChartLock      string      `mapstructure:"path-chart-lock"`
+	NoCache            bool        `mapstructure:"no-cache"`
+	CacheDir           string      `mapstructure:"cache-dir"`
+	MainVersion        string      `mapstructure:"main-version"`
+	TemplateFile       string      `mapstructure:"template-file"`
+	OutputFile         string      `mapstructure:"output-file"`
+	OutputFileTemplate string      `mapstructure:"output-file-template"`
 }
 
 func createBundleNotes() *cobra.Command {
@@ -50,6 +51,7 @@ func createBundleNotes() *cobra.Command {
 	addFlag(cmd, "cache-dir", "d", ".cache/bundle", "bundle cache directory")
 	addFlag(cmd, "template-file", "p", "template.tmpl", "go-template file for release notes")
 	addFlag(cmd, "output-file", "o", "", "output file name")
+	addFlag(cmd, "output-file-template", "u", "{{ .Name }}-{{ .Version }}.md", "output file name template")
 	addBoolFlag(cmd, "no-cache", "e", false, "enabled or disable cache")
 	addFlag(cmd, "main-version", "m", "main", "main version constant. If product has main-version, components version will be also overwrite to main-version")
 
@@ -221,11 +223,24 @@ func executeNotes(flags bundleNotesFlags) {
 	content := tpl.Bytes()
 	outputFile := flags.OutputFile
 	if len(outputFile) == 0 {
-		outputFile = fmt.Sprintf("%s-%s.md", req.Name(), req.Version())
+		outputFile = createOutputFilename(flags.OutputFileTemplate, req)
 	}
 	if err := util.CreateFile(outputFile, content); err != nil {
 		panic(err)
 	}
+}
+
+func createOutputFilename(data string, req *Request) string {
+	tmpl, err := template.New("output-file-template").Parse(data)
+	if err != nil {
+		panic(err)
+	}
+	var tpl bytes.Buffer
+	err = tmpl.Execute(&tpl, req)
+	if err != nil {
+		panic(err)
+	}
+	return tpl.String()
 }
 
 func findFirstCommit(c client.ClientService, flags bundleNotesFlags, product *Product, component *Component) *client.Commit {
