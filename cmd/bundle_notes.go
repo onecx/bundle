@@ -27,7 +27,7 @@ const defaultTemplate = "resources/template.tmpl"
 type bundleNotesFlags struct {
 	BundleFlags   bundleFlags `mapstructure:",squash"`
 	PathChartLock string      `mapstructure:"path-chart-lock"`
-	Cache         bool        `mapstructure:"cache"`
+	NoCache       bool        `mapstructure:"no-cache"`
 	CacheDir      string      `mapstructure:"cache-dir"`
 	MainVersion   string      `mapstructure:"main-version"`
 	TemplateFile  string      `mapstructure:"template-file"`
@@ -50,7 +50,7 @@ func createBundleNotes() *cobra.Command {
 	addFlag(cmd, "cache-dir", "d", ".cache/bundle", "bundle cache directory")
 	addFlag(cmd, "template-file", "p", "template.tmpl", "go-template file for release notes")
 	addFlag(cmd, "output-file", "o", "", "output file name")
-	addBoolFlag(cmd, "cache", "e", true, "enabled or disable cache")
+	addBoolFlag(cmd, "no-cache", "e", false, "enabled or disable cache")
 	addFlag(cmd, "main-version", "m", "main", "main version constant. If product has main-version, components version will be also overwrite to main-version")
 
 	return cmd
@@ -58,7 +58,7 @@ func createBundleNotes() *cobra.Command {
 
 func executeNotes(flags bundleNotesFlags) {
 
-	if flags.Cache {
+	if !flags.NoCache {
 		if err := util.CreateDir(flags.CacheDir); err != nil {
 			panic(err)
 		}
@@ -124,7 +124,7 @@ func executeNotes(flags bundleNotesFlags) {
 		for _, component := range product.components {
 			cacheFile := fmt.Sprintf("%s/products/%s/%s_%s_%s.json", flags.CacheDir, product.name, component.name, component.base.Version, component.head.Version)
 			var compare *client.CommitsComparison
-			if flags.Cache && util.FileExists(cacheFile) {
+			if !flags.NoCache && util.FileExists(cacheFile) {
 				slog.Debug("Load product component compare from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
 				var tmp client.CommitsComparison
 				err := util.LoadJsonData(cacheFile, &tmp)
@@ -140,7 +140,7 @@ func executeNotes(flags bundleNotesFlags) {
 				}
 				compare = tmp
 			}
-			if flags.Cache && !util.FileExists(cacheFile) {
+			if !flags.NoCache && !util.FileExists(cacheFile) {
 				if err := util.CreateJsonFile(cacheFile, compare); err != nil {
 					panic(err)
 				}
@@ -160,7 +160,7 @@ func executeNotes(flags bundleNotesFlags) {
 
 				cacheFile := fmt.Sprintf("%s/products/%s/%s_%s.json", flags.CacheDir, product.name, component.name, commit.SHA)
 				var pullRequests []*client.PullRequest
-				if flags.Cache && util.FileExists(cacheFile) {
+				if !flags.NoCache && util.FileExists(cacheFile) {
 					slog.Debug("Load product component pull-request from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
 					tmp := make([]*client.PullRequest, 0)
 					err := util.LoadJsonData(cacheFile, &tmp)
@@ -175,7 +175,7 @@ func executeNotes(flags bundleNotesFlags) {
 					}
 					pullRequests = tmp
 				}
-				if flags.Cache && !util.FileExists(cacheFile) {
+				if !flags.NoCache && !util.FileExists(cacheFile) {
 					if err := util.CreateJsonFile(cacheFile, pullRequests); err != nil {
 						panic(err)
 					}
@@ -232,7 +232,7 @@ func findFirstCommit(c client.ClientService, flags bundleNotesFlags, product *Pr
 
 	cacheFile := fmt.Sprintf("%s/products/%s/%s_first_commit.json", flags.CacheDir, product.name, component.name)
 	var commit *client.Commit
-	if flags.Cache && util.FileExists(cacheFile) {
+	if !flags.NoCache && util.FileExists(cacheFile) {
 		slog.Debug("Load component first commit from cache.", slog.String("product", product.name), slog.String("component", component.name), slog.String("cache", cacheFile))
 		var tmp client.Commit
 		err := util.LoadJsonData(cacheFile, &tmp)
@@ -249,7 +249,7 @@ func findFirstCommit(c client.ClientService, flags bundleNotesFlags, product *Pr
 		}
 		commit = tmp
 	}
-	if flags.Cache && !util.FileExists(cacheFile) {
+	if !flags.NoCache && !util.FileExists(cacheFile) {
 		if err := util.CreateJsonFile(cacheFile, commit); err != nil {
 			panic(err)
 		}
@@ -322,7 +322,7 @@ func loadProductData(flags bundleNotesFlags, client client.ClientService, produc
 	cacheFile := fmt.Sprintf("%s/products/%s/%s/%s", flags.CacheDir, product.Name, product.Version, path)
 	var data []byte
 
-	if flags.Cache {
+	if !flags.NoCache {
 		if util.FileExists(cacheFile) {
 			slog.Debug("Load Chart.lock from cache.", slog.String("product", product.Name), slog.String("version", product.Version), slog.String("cache", cacheFile))
 			tmp, err := util.LoadFile(cacheFile)
@@ -335,7 +335,7 @@ func loadProductData(flags bundleNotesFlags, client client.ClientService, produc
 	if len(data) == 0 {
 		data = downloadProductData(client, product, path)
 	}
-	if flags.Cache && !util.FileExists(cacheFile) {
+	if !flags.NoCache && !util.FileExists(cacheFile) {
 		if err := util.CreateDir(filepath.Dir(cacheFile)); err != nil {
 			panic(err)
 		}
