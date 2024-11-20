@@ -17,16 +17,16 @@ bundle help
 ```
 
 ```shell script
-bundle bundle notes --github-token **** --head test/Bundle-latest.yaml --base test/Bundle-2024-10-30.yaml -v debug
+bundle notes --github-token **** --head test/Bundle-latest.yaml --base test/Bundle-2024-10-30.yaml -v debug
 ```
 
 ## Commands
 
-Command: `bundle bundle --help`  
+Command: `bundle --help`  
 Output:
 ```shell script
 Usage:
-  bundle bundle [command]
+  bundle [command]
 
 Available Commands:
   diff        Generate bundle diff

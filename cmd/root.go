@@ -51,6 +51,13 @@ func Execute(version BuildVersion) {
 	}
 }
 
+type bundleFlags struct {
+	GithubToken string   `mapstructure:"github-token"`
+	BundleFile  string   `mapstructure:"head"`
+	Bundlebase  string   `mapstructure:"base"`
+	Ignore      []string `mapstructure:"ignore-products"`
+}
+
 func init() {
 	rootCmd.AddCommand(versionCmd)
 
@@ -58,7 +65,13 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is .bundle.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&v, "verbosity", "v", slog.LevelInfo.String(), "Log level (debug, info, warn and error")
 
-	addChildCmd(rootCmd, createBundleCmd())
+	addFlag(rootCmd, "github-token", "t", "", "github access token")
+	addFlag(rootCmd, "head", "f", "", "head bundle file")
+	addFlag(rootCmd, "base", "b", "", "base bundle file")
+	addSliceFlag(rootCmd, "ignore-products", "i", []string{}, "ignore bundle products")
+
+	addChildCmd(rootCmd, createBundleDiff())
+	addChildCmd(rootCmd, createBundleNotes())
 }
 
 func initConfig() {
