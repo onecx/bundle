@@ -6,7 +6,8 @@ import picocli.CommandLine;
 
 public class BundleOptions {
 
-    @CommandLine.Option(names = { "-n", "--name" }, description = "Name of the compared project. Default: 'OneCX'.", defaultValue = "OneCX")
+    @CommandLine.Option(names = { "-n",
+            "--name" }, description = "Name of the compared project. Default: 'OneCX'.", defaultValue = "OneCX")
     public String name;
 
     @CommandLine.Option(names = { "-b", "--base" }, description = "base bundle file")
