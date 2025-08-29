@@ -129,7 +129,7 @@ public class ProductLoader {
                     yaml.dump(data, writer);
                 }
             } catch (IOException e) {
-                throw new RuntimeException("Fehler beim Schreiben der Chart.lock-Datei", e);
+                throw new RuntimeException("Error while creating Chart.lock file", e);
             }
         }
 

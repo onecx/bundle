@@ -309,7 +309,7 @@ public class BundleNotesService {
                     : "release-notes-" + bundleOptions.mainVersion + ".md");
         }
 
-        Path path = Paths.get("/tmp/output/" + outputFile);
+        Path path = Paths.get(bundleOptions.resourceDir + "output/" + outputFile);
         Files.writeString(path, filledTemplate, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         Log.info("✅ Output file written: " + path.toAbsolutePath());
     }
