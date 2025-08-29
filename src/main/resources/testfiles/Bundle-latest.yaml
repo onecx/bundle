@@ -1,0 +1,11 @@
+name: Test Onecx
+version: latest
+products:
+  onecx-product-store:
+    name: onecx-product-store
+    version: main
+    repo: onecx/onecx-product-store
+  onecx-iam:
+    name: onecx-iam
+    version: main
+    repo: onecx/onecx-iam

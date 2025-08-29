@@ -1,0 +1,14 @@
+# Release Notes for {{name}} – Version {{version}}
+
+{{#products}}
+## {{name}} {{baseVersion}}...{{headVersion}}
+
+{{#components}}
+### {{name}} [{{baseVersion}}...{{headVersion}}]({{diffUrl}})
+
+{{#changes}}
+* [#{{number}}]({{htmlUrl}}) - {{title}} {{#labels}}`{{.}}` {{/labels}}
+{{/changes}}
+
+{{/components}}
+{{/products}}

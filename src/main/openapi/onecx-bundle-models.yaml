@@ -1,0 +1,158 @@
+---
+openapi: 3.0.3
+info:
+ title: onecx-bundle
+ description: OneCx Bundle
+ version: "2.0"
+paths:
+ /:
+  get:
+   operationId: noOps
+   responses:
+    "501":
+     description: Not Implemented
+components:
+ schemas:
+  Dependency:
+   type: object
+   properties:
+    name:
+     type: string
+    repository:
+     type: string
+    version:
+     type: string
+  ChartLock:
+   type: object
+   properties:
+    dependencies:
+     type: array
+     items:
+      $ref: '#/components/schemas/Dependency'
+    digest:
+     type: string
+    generated:
+     type: string
+  BundleProduct:
+   type: object
+   properties:
+    name:
+     type: string
+    version:
+     type: string
+    repo:
+     type: string
+  Product:
+   type: object
+   properties:
+     key:
+      type: string
+     name:
+      type: string
+     base:
+      $ref: '#/components/schemas/ProductData'
+     head:
+      $ref: '#/components/schemas/ProductData'
+     components:
+      type: object
+      additionalProperties:
+       $ref: '#/components/schemas/Component'
+  Bundle:
+   type: object
+   properties:
+    name:
+     type: string
+    version:
+     type: string
+    products:
+     type: object
+     additionalProperties:
+      $ref: '#/components/schemas/BundleProduct'
+  PullRequest:
+   type: object
+   properties:
+    id:
+     type: number
+    number:
+     type: number
+    title:
+     type: string
+    labels:
+     type: array
+     items:
+      type: string
+    htmlUrl:
+     type: string
+    mergedAt:
+     $ref: '#/components/schemas/OffsetDateTime'
+  Commit:
+   type: object
+   properties:
+    sha:
+     type: string
+    htmlUrl:
+     type: string
+    message:
+     type: string
+  CommitsComparison:
+   type: object
+   properties:
+    totalCommits:
+     type: number
+    status:
+     type: string
+    aheadBy:
+     type: number
+    behindBy:
+     type: number
+    commits:
+     type: array
+     items:
+      $ref: '#/components/schemas/Commit'
+    diffUrl:
+     type: string
+    htmlUrl:
+     type: string
+  Component:
+   type: object
+   properties:
+    name:
+     type: string
+    base:
+     $ref: '#/components/schemas/Dependency'
+    head:
+     $ref: '#/components/schemas/Dependency'
+    compare:
+     $ref: '#/components/schemas/CommitsComparison'
+    commits:
+     type: array
+     items:
+      $ref: '#/components/schemas/Commit'
+    pullRequests:
+     type: object
+     additionalProperties:
+      type: array
+      items:
+       $ref: '#/components/schemas/PullRequest'
+    changes:
+     type: array
+     items:
+      $ref: '#/components/schemas/Change'
+  Change:
+   type: object
+   properties:
+    pr:
+     $ref: '#/components/schemas/PullRequest'
+    commit:
+     $ref: '#/components/schemas/Commit'
+  ProductData:
+   type: object
+   properties:
+    bundle:
+     $ref: '#/components/schemas/BundleProduct'
+    chartLock:
+     $ref: '#/components/schemas/ChartLock'
+  OffsetDateTime:
+   format: date-time
+   type: string
+   example: 2022-03-10T12:15:50-04:00
