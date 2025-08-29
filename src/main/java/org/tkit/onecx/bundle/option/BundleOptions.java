@@ -51,7 +51,7 @@ public class BundleOptions {
     public String mainVersion;
 
     @CommandLine.Option(names = { "-s",
-            "--resource-dir" }, description = "Directory path for resources like cache, template etc. When running as docker image: '/work/' . When running in dev mode: 'src/main/'. Default: '/work/'", defaultValue = "/work/")
+            "--resource-dir" }, description = "Directory path for resources like cache, template etc. When running as docker image: '/tmp/' . When running in dev mode: 'src/main/'. Default: '/tmp/'", defaultValue = "/tmp/")
     public String resourceDir;
 
     @CommandLine.Option(names = { "-x", "--help" }, description = "Display help", defaultValue = "false")
