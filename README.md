@@ -1,67 +1,81 @@
-# bundle
 
-Bundle delivery tool
+# OneCX Bundle CLI
 
-[![License](https://img.shields.io/github/license/onecx/bundle?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/onecx/bundle/main.yaml?logo=github&style=for-the-badge)](https://github.com/onecx/bundle/actions?query=workflow%3Abuild)
-[![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/onecx/bundle?logo=github&style=for-the-badge)](https://github.com/onecx/bundle/releases/latest)
+The OneCX Bundle CLI is a command-line tool for generating release notes based on bundle files. It can be used locally or via Docker. \
+#### This is the main version based on Java + Quarkus.
+Feel free to switch to the Golang version of the 'go' branch.
+#### Be aware that the Golang version isn't supported or updated anymore.
 
-tasks:
-* create release notes
-* diff of two bundles
-  
-## Getting Started
+---
 
-```shell script
-bundle help
+## 🚀 Installation & Usage
+
+### Docker Compose Example
+```yaml
+services:
+  onecx-bundle:
+    image: ghcr.io/onecx/onecx-bundle:main-native
+    command: notes --github-token <TOKEN> --head /tmp/resources/Bundle-latest.yaml --base /tmp/resources/Bundle-2024-10-30.yaml -v INFO
+    user: root
+    volumes:
+      - ./bundle-output:/tmp/output
+      - ./bundle-input:/tmp/resources
+    networks:
+      - example
+    profiles:
+      - all
 ```
 
-```shell script
-bundle notes --github-token **** --head test/Bundle-latest.yaml --base test/Bundle-2024-10-30.yaml -v debug
+### Directory Structure
+```
+./bundle-input/         # Contains the bundle files (head/base/template/cache)
+./bundle-output/        # Output directory for generated release notes (auto generated)
 ```
 
-## Commands
+---
 
-Command: `bundle --help`  
-Output:
-```shell script
-Usage:
-  bundle [command]
+## 🧰 CLI Options
 
-Available Commands:
-  diff        Generate bundle diff
-  notes       Generate bundle notes
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-n`, `--name` | Name of the compared project | `OneCX` |
+| `-b`, `--base` | Path to the base bundle file | - |
+| `-h`, `--head` | Path to the head bundle file | - |
+| `-t`, `--github-token` | GitHub access token | - |
+| `-i`, `--ignore-products` | List of products to ignore | - |
+| `-v`, `--verbosity` | Log level: `INFO`, `DEBUG`, `WARN`, `ERROR` | `INFO` |
+| `-a`, `--path-chart-lock` | Path to the Chart.lock file | `helm/Chart.lock` |
+| `-p`, `--template-file` | Mustache template file for release notes | `template.mustache` |
+| `-f`, `--output-file` | Output file name | - |
+| `-o`, `--owner` | GitHub repository owner | `onecx` |
+| `-c`, `--no-cache` | Enable or disable cache | `false` |
+| `-r`, `--remove-cache` | Remove cache if it exists | `false` |
+| `-m`, `--main-version` | Main version constant | `main` |
+| `-s`, `--resource-dir` | Directory for resources like cache, templates, etc. | `/tmp/` |
+| `-x`, `--help` | Display help | `false` |
 
-Flags:
-  -b, --base string                   base bundle file
-  -t, --github-token string           github access token
-  -f, --head string                   head bundle file
-  -h, --help                          help for bundle
-  -i, --ignore-products stringArray   ignore bundle products
+---
 
-Global Flags:
-  -c, --config string      config file (default is .bundle.yaml)
-  -v, --verbosity string   Log level (debug, info, warn and error (default "INFO")
-
-Use "bundle bundle [command] --help" for more information about a command.
+## 🧪 Example Command
+```bash
+notes  --github-token <TOKEN> --head /tmp/resources/Bundle-latest.yaml --base /tmp/resources/Bundle-2024-10-30.yaml -v INFO
 ```
 
-## Development
+---
 
-### Local build
-```
-go install
-bundle version
-{"Version":"dev","Commit":"none","Date":"unknown"}
-```
+## 📁 File Usage Notes
+- Place your bundle files in the `./bundle-input/` directory.
+- The generated release notes will be saved in `./bundle-output/`.
+- Both directories are mounted into the container via volumes.
 
-### Local docker build
-```
-go build
-docker build -t bundle .
-``` 
+---
 
-### Test release packages
-```
-goreleaser release --snapshot --clean
-```
+## 🛠 Development
+- For local development, you can run the application using `quarkus:dev`.
+- In that case, resources are located under `src/main/resources/testfiles/`.
+  - Make sure to use full paths to your bundle and template file like this:
+    - --head src/main/resources/testfiles/Bundle-latest.yaml
+---
+
+## 📬 Contact
+For questions or issues, please open an issue in the corresponding repository.

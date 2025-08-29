@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.tkit.onecx</groupId>
+        <artifactId>onecx-quarkus3-parent</artifactId>
+        <version>1.3.0</version>
+    </parent>
+
+    <artifactId>onecx-bundle</artifactId>
+    <version>999-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.tkit.onecx.quarkus</groupId>
+            <artifactId>onecx-core</artifactId>
+        </dependency>
+        <!-- QUARKUS -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-openapi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-validator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-picocli</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.kohsuke</groupId>-->
+<!--            <artifactId>github-api</artifactId>-->
+<!--            <version>1.327</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>io.quarkiverse.githubapi</groupId>
+            <artifactId>quarkus-github-api</artifactId>
+            <version>1.326.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>2.18.2</version>
+        </dependency>
+        <!-- OTHER -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.9.10</version>
+        </dependency>
+
+        <!-- TEST -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+      <plugins>
+        <plugin>
+            <groupId>org.tkit.maven</groupId>
+            <artifactId>tkit-docs-quarkus-plugin</artifactId>
+            <executions>
+                <execution>
+                    <configuration>
+                        <skipDocs>true</skipDocs>
+                    </configuration>
+                    <id>docs</id>
+                    <phase>prepare-package</phase>
+                    <goals>
+                        <goal>docs</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator-maven-plugin</artifactId>
+        <configuration>
+            <generatorName>jaxrs-spec</generatorName>
+            <generateApiTests>false</generateApiTests>
+            <generateApiDocumentation>false</generateApiDocumentation>
+            <generateModelTests>false</generateModelTests>
+            <generateModelDocumentation>false</generateModelDocumentation>
+            <generateSupportingFiles>false</generateSupportingFiles>
+            <addCompileSourceRoot>true</addCompileSourceRoot>
+            <library>quarkus</library>
+            <configOptions>
+                <sourceFolder>/</sourceFolder>
+                <openApiNullable>false</openApiNullable>
+                <returnResponse>true</returnResponse>
+                <useTags>true</useTags>
+                <interfaceOnly>true</interfaceOnly>
+                <serializableModel>true</serializableModel>
+                <singleContentTypes>true</singleContentTypes>
+                <dateLibrary>java8</dateLibrary>
+                <useMicroProfileOpenAPIAnnotations>true</useMicroProfileOpenAPIAnnotations>
+                <useJakartaEe>true</useJakartaEe>
+                <useSwaggerAnnotations>false</useSwaggerAnnotations>
+                <java17>true</java17>
+                <additionalModelTypeAnnotations>@io.quarkus.runtime.annotations.RegisterForReflection;</additionalModelTypeAnnotations>
+            </configOptions>
+        </configuration>
+        <executions>
+            <execution>
+                <id>models</id>
+                <goals>
+                    <goal>generate</goal>
+                </goals>
+                <configuration>
+                    <inputSpec>src/main/openapi/onecx-bundle-models.yaml</inputSpec>
+                    <apiPackage>gen.org.tkit.onecx.bundle.model</apiPackage>
+                    <modelPackage>gen.org.tkit.onecx.bundle.model</modelPackage>
+                </configuration>
+            </execution>
+        </executions>
+    </plugin>
+      </plugins>
+</build>
+
+</project>

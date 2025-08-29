@@ -1,0 +1,6 @@
+FROM ghcr.io/onecx/docker-quarkus-native:0.21.0
+
+COPY --chown=1001:root target/*-runner /work/application
+COPY --chown=1001:root src/main/resources /tmp/resources
+
+ENTRYPOINT ["/work/application"]
