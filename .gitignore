@@ -44,4 +44,4 @@ nb-configuration.xml
 .quarkus/cli/plugins/
 
 # cache
-src/main/resources/cache/*
+.cache

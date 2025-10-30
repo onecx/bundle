@@ -1,4 +1,0 @@
-app:
-  name: cli
-  image:
-    repository: "onecx/onecx-bundle"
