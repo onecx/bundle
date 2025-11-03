@@ -1,0 +1,35 @@
+---
+openapi: 3.0.3
+info:
+ title: onecx-bundle
+ description: OneCx Bundle
+ version: "2.0"
+paths:
+ /:
+  get:
+   operationId: noOps
+   responses:
+    "501":
+     description: Not Implemented
+components:
+  schemas:
+    Bundle:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        products:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/BundleProduct'
+    BundleProduct:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        repo:
+          type: string

@@ -289,7 +289,7 @@ public class BundleNotesService {
 //        }
 //
 //        var engine = EngineFactory.createEngine();
-//        Template tmp = engine.getTemplate("template.txt");
+//        Template tmp = engine.getTemplate("template.qute");
 //
 //        // prepare context for template
 //        Map<String, Object> context = prepareTemplateContext(bundleOptions, products);

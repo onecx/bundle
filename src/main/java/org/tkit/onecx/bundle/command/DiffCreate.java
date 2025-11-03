@@ -35,11 +35,11 @@ public class DiffCreate implements Callable<Integer> {
 
         output.throwIfUnmatchedArguments(spec.commandLine());
 
-        var base = BundleUtil.loadBundle(output, bundleOption.baseFile);
+        var base = BundleUtil.loadBundle(output, bundleOption.baseFile, bundleOption.ignoredProducts);
         if (base == null) {
             return CommandLine.ExitCode.SOFTWARE;
         }
-        var head = BundleUtil.loadBundle(output, bundleOption.headFile);
+        var head = BundleUtil.loadBundle(output, bundleOption.headFile, bundleOption.ignoredProducts);
         if (head == null) {
             return CommandLine.ExitCode.SOFTWARE;
         }

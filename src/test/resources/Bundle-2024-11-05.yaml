@@ -7,7 +7,7 @@ products:
     repo: onecx/onecx-shell
   onecx-product-store:
     name: onecx-product-store
-    version: 1.2.0
+    version: 1.8.0
     repo: onecx/onecx-product-store
   onecx-theme:
     name: onecx-theme

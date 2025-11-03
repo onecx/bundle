@@ -1,0 +1,11 @@
+# Release Notes for {head.name}  {base.version}...{head.version}
+
+{#for product in products.values}
+## {product.bundle.name} {product.base.bundle.version}...{product.head.bundle.version}
+
+{#for component in product.components.values}
+### {component.name} {component.base.version}...{component.head.version}
+
+{/for}
+
+{/for}

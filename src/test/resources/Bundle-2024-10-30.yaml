@@ -3,7 +3,7 @@ version: 2024-10-30
 products:
   onecx-product-store:
     name: onecx-product-store
-    version: 1.1.0
+    version: 1.8.0
     repo: onecx/onecx-product-store
   onecx-shell:
     name: onecx-shell
