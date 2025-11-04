@@ -4,8 +4,8 @@ import gen.org.tkit.onecx.bundle.model.Bundle;
 import gen.org.tkit.onecx.bundle.model.BundleProduct;
 import io.quarkus.cli.common.HelpOption;
 import io.quarkus.cli.common.OutputOptionMixin;
-import org.tkit.onecx.bundle.option.BundleOption;
-import org.tkit.onecx.bundle.option.CommonOption;
+import org.tkit.onecx.bundle.command.option.BundleOption;
+import org.tkit.onecx.bundle.command.option.CommonOption;
 import org.tkit.onecx.bundle.utils.BundleUtil;
 import picocli.CommandLine;
 

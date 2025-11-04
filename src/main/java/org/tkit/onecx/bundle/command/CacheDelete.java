@@ -2,7 +2,8 @@ package org.tkit.onecx.bundle.command;
 
 import io.quarkus.cli.common.HelpOption;
 import io.quarkus.cli.common.OutputOptionMixin;
-import org.tkit.onecx.bundle.option.CommonOption;
+import org.tkit.onecx.bundle.command.option.CacheOption;
+import org.tkit.onecx.bundle.command.option.CommonOption;
 import org.tkit.onecx.bundle.utils.SystemUtil;
 import picocli.CommandLine;
 
@@ -15,7 +16,7 @@ public class CacheDelete implements Callable<Integer> {
     protected OutputOptionMixin output;
 
     @CommandLine.Mixin
-    protected CommonOption commonOption;
+    protected CacheOption cacheOption;
 
     @CommandLine.Mixin
     protected HelpOption helpOption;
@@ -27,8 +28,8 @@ public class CacheDelete implements Callable<Integer> {
     public Integer call() throws Exception {
         output.throwIfUnmatchedArguments(spec.commandLine());
 
-        SystemUtil.deleteDirectory(commonOption.cacheDir);
-        output.debug("Cache directory '" + commonOption.cacheDir + "' was deleted.");
+        SystemUtil.deleteDirectory(cacheOption.cacheDir);
+        output.debug("Cache directory '" + cacheOption.cacheDir + "' was deleted.");
         return CommandLine.ExitCode.OK;
     }
 }

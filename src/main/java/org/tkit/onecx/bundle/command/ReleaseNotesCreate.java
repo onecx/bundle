@@ -4,24 +4,24 @@ import gen.org.tkit.onecx.bundle.model.BundleProduct;
 
 import io.quarkus.cli.common.HelpOption;
 import io.quarkus.cli.common.OutputOptionMixin;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.ReflectionValueResolver;
 import org.tkit.onecx.bundle.client.Client;
 import org.tkit.onecx.bundle.client.ClientConfig;
 import org.tkit.onecx.bundle.client.ClientFactory;
+import org.tkit.onecx.bundle.command.option.CacheOption;
 import org.tkit.onecx.bundle.helm.ChartLock;
 import org.tkit.onecx.bundle.helm.Dependency;
 import org.tkit.onecx.bundle.helm.HelmUtil;
 import org.tkit.onecx.bundle.models.*;
-import org.tkit.onecx.bundle.option.BundleOption;
-import org.tkit.onecx.bundle.option.CommonOption;
-import org.tkit.onecx.bundle.option.ReleaseNotesCreateOption;
-import org.tkit.onecx.bundle.service.BundleNotesService;
-import org.tkit.onecx.bundle.template.EngineFactory;
+import org.tkit.onecx.bundle.command.option.BundleOption;
+import org.tkit.onecx.bundle.command.option.CommonOption;
+import org.tkit.onecx.bundle.command.option.ReleaseNotesCreateOption;
 import org.tkit.onecx.bundle.utils.BundleUtil;
 
 import org.tkit.onecx.bundle.utils.SystemUtil;
 import picocli.CommandLine;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -37,6 +37,9 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
     OutputOptionMixin output;
 
     @CommandLine.Mixin
+    protected CacheOption cacheOption;
+
+    @CommandLine.Mixin
     protected BundleOption bundleOption;
 
     @CommandLine.Mixin
@@ -48,22 +51,16 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
     @CommandLine.Spec
     protected CommandLine.Model.CommandSpec spec;
 
-    BundleNotesService notesService;
-
-    public ReleaseNotesCreate(BundleNotesService notesService) {
-        this.notesService = notesService;
-    }
-
     @Override
     public Integer call() throws Exception {
 
         output.throwIfUnmatchedArguments(spec.commandLine());
 
         if (!option.noCache) {
-            if (!SystemUtil.createDirectory(commonOption.cacheDir)) {
-                output.debug("Cache directory '" + commonOption.cacheDir + "' already exists.");
+            if (!SystemUtil.createDirectory(cacheOption.cacheDir)) {
+                output.debug("Cache directory '%s' already exists.", cacheOption.cacheDir);
             } else {
-                output.debug("Cache directory '" + commonOption.cacheDir + "' was created.");
+                output.debug("Cache directory '%s' was created.", cacheOption.cacheDir);
             }
         }
 
@@ -87,7 +84,7 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
                 }
 
                 // create component repository owner/product -> owner/component
-                var repo = request.getClient().createRepository(product.getBundle().getRepo(), dep.getName());
+                var repo = request.getClient().createRepository(output, product.getBundle().getRepo(), dep.getName());
 
                 product.getComponents().put(dep.getName(), new Component(dep.getName(), dep, repo));
             }
@@ -111,7 +108,7 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
                     continue;
                 }
 
-                var firstCommit = request.getClient().firstCommit(component.getRepository());
+                var firstCommit = request.getClient().firstCommit(output, component.getRepository());
                 if (firstCommit == null) {
                     output.error("No first commit found for component " + component.getName());
                     return CommandLine.ExitCode.SOFTWARE;
@@ -129,7 +126,7 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
         output.debug("Compare components of the products.");
         for (var product : request.getProducts().values()) {
             for (var component : product.getComponents().values()) {
-                var compare = request.getClient().compareCommits(component.getRepository(), component.getBase().getVersion(), component.getHead().getVersion());
+                var compare = request.getClient().compareCommits(output, component.getRepository(), component.getBase().getVersion(), component.getHead().getVersion());
                 component.setCompare(compare);
                 component.setCommits(compare.getCommits());
             }
@@ -140,7 +137,7 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
         for (var product : request.getProducts().values()) {
             for (var component : product.getComponents().values()) {
                 for (var commit : component.getCommits()) {
-                    var prs = request.getClient().pullRequestByCommitRepo(component.getRepository(), commit.getSha());
+                    var prs = request.getClient().pullRequestByCommitRepo(output, component.getRepository(), commit.getSha());
                     if (prs.isEmpty()) {
                         continue;
                     }
@@ -150,6 +147,7 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
             }
         }
 
+        // Generate report base on the template
         output.debug("Generate template for bundle.");
         if (!Files.exists(Paths.get(option.templateFile))) {
             output.error("Template file '" + option.templateFile + "' does not exists.");
@@ -162,7 +160,13 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
             return CommandLine.ExitCode.SOFTWARE;
         }
 
-        var result = EngineFactory.createEngine().parse(templateContent).data(request).render();
+        var result = Engine.builder()
+                .addDefaults()
+                .addValueResolver(new ReflectionValueResolver())
+                .removeStandaloneLines(true)
+                .strictRendering(false)
+                .build()
+                .parse(templateContent).data(request).render();
 
         if (option.outputFile != null && !option.outputFile.isEmpty()) {
             var outputFile = Paths.get(option.outputFile);
@@ -198,7 +202,7 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
                         ClientConfig
                                 .builder(commonOption.token)
                                 .cache(!option.noCache)
-                                .cacheDir(commonOption.cacheDir)
+                                .cacheDir(cacheOption.cacheDir)
                                 .build()
                     );
 
@@ -226,7 +230,7 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
     }
 
     private ProductData loadProductData(Client client, BundleProduct bp) throws Exception {
-        var data = client.downloadFile(bp.getRepo(), bp.getVersion(), option.pathChartLock);
+        var data = client.downloadFile(output, bp.getRepo(), bp.getVersion(), option.pathChartLock);
         ChartLock chartLock = HelmUtil.loadChartLock(data);
         return new ProductData(bp, chartLock);
     }

@@ -2,7 +2,6 @@ package org.tkit.onecx.bundle.utils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;

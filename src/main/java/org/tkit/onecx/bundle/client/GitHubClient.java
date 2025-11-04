@@ -1,6 +1,7 @@
 package org.tkit.onecx.bundle.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.devtools.messagewriter.MessageWriter;
 import org.kohsuke.github.GHLabel;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
@@ -27,22 +28,24 @@ public class GitHubClient implements Client {
         this.config = config;
     }
 
-    public String createRepository(String owner, String name) {
+    public String createRepository(MessageWriter output, String owner, String name) {
         var tmp = owner.split("/");
         return tmp[0] + "/" + name;
     }
 
-    public Commit firstCommit(String repository) throws Exception {
+    public Commit firstCommit(MessageWriter output, String repository) throws Exception {
 
-        var cacheFile = Paths.get(config.getCacheDir() + "/github/" + repository + "/firstCommit.json");
+        var cacheFile = Paths.get(config.getCacheDir() + "/github/" + repository + "/commits/0.json");
 
         if (config.isCache()) {
             if (Files.exists(cacheFile)) {
+                output.debug("Load cache file: " + cacheFile);
                 return OBJECT_MAPPER.readValue(cacheFile.toFile(), Commit.class);
             }
         }
 
-        var c = getRepository(repository).listCommits().withPageSize(1).iterator().next();
+        output.debug("Client get repository: " + repository + " commits.");
+        var c = getRepository(output, repository).listCommits().withPageSize(1).iterator().next();
         var result = new Commit();
         result.setSha(c.getSHA1());
         result.setHtmlUrl(c.getHtmlUrl().toString());
@@ -51,22 +54,25 @@ public class GitHubClient implements Client {
         if (config.isCache()) {
             Files.deleteIfExists(cacheFile);
             Files.createDirectories(cacheFile.getParent());
+            output.debug("Write cache file: " + cacheFile);
             OBJECT_MAPPER.writeValue(cacheFile.toFile(), result);
         }
         return result;
     }
 
-    public CommitPullRequests pullRequestByCommitRepo(String repository, String sha) throws Exception {
-        var cacheFile = Paths.get(config.getCacheDir() + "/github/" + repository + "/pr_" + sha + ".json");
+    public CommitPullRequests pullRequestByCommitRepo(MessageWriter output, String repository, String sha) throws Exception {
+        var cacheFile = Paths.get(config.getCacheDir() + "/github/" + repository + "/commits/" + sha + "/pr.json");
         if (config.isCache()) {
             if (Files.exists(cacheFile)) {
+                output.debug("Load cache file: " + cacheFile);
                 return OBJECT_MAPPER.readValue(cacheFile.toFile(), CommitPullRequests.class);
             }
         }
 
         var pullRequests = new ArrayList<PullRequest>();
 
-        var tmp = getRepository(repository).getCommit(sha).listPullRequests();
+        output.debug("Client get repository: " + repository + " commit: " + sha + " pull requests.");
+        var tmp = getRepository(output, repository).getCommit(sha).listPullRequests();
         tmp.forEach(p -> {
             var pr = new PullRequest();
             pr.setId(p.getId());
@@ -84,23 +90,26 @@ public class GitHubClient implements Client {
         if (config.isCache()) {
             Files.deleteIfExists(cacheFile);
             Files.createDirectories(cacheFile.getParent());
+            output.debug("Write cache file: " + cacheFile);
             OBJECT_MAPPER.writeValue(cacheFile.toFile(), result);
         }
 
         return result;
     }
 
-    public byte[] downloadFile(String repository, String ref, String path) throws Exception {
+    public byte[] downloadFile(MessageWriter output, String repository, String ref, String path) throws Exception {
 
         var cacheFile = Paths.get(config.getCacheDir() + "/github/" + repository + "/" + ref + "/" + path);
 
         if (config.isCache()) {
             if (Files.exists(cacheFile)) {
+                output.debug("Load cache file: " + cacheFile);
                 return Files.readAllBytes(cacheFile);
             }
         }
 
-        var content = getRepository(repository).getFileContent(path, ref);
+        output.debug("Client get repository: " + repository + " file: " + path + " ref: " + ref);
+        var content = getRepository(output, repository).getFileContent(path, ref);
         byte[] data = null;
         try (var in = content.read()) {
             data = in.readAllBytes();
@@ -109,23 +118,26 @@ public class GitHubClient implements Client {
         if (config.isCache()) {
             Files.deleteIfExists(cacheFile);
             Files.createDirectories(cacheFile.getParent());
+            output.debug("Write cache file: " + cacheFile);
             Files.write(cacheFile, data);
         }
         return data;
     }
 
     @Override
-    public CommitsComparison compareCommits(String repository, String base, String head) throws Exception {
+    public CommitsComparison compareCommits(MessageWriter output, String repository, String base, String head) throws Exception {
 
-        var cacheFile = Paths.get(config.getCacheDir() + "/github/" + repository + "/compare_" + base + "_" + head + ".json");
+        var cacheFile = Paths.get(config.getCacheDir() + "/github/" + repository + "/compare/" + base + "_" + head + ".json");
 
         if (config.isCache()) {
             if (Files.exists(cacheFile)) {
+                output.debug("Load cache file: " + cacheFile);
                 return  OBJECT_MAPPER.readValue(cacheFile.toFile(), CommitsComparison.class);
             }
         }
 
-        var compare = getRepository(repository).getCompare(base, head);
+        output.debug("Client compare repository: " + repository + " base: " + base + " head: " + head);
+        var compare = getRepository(output, repository).getCompare(base, head);
 
         var commits = Arrays.stream(compare.getCommits()).map(commit -> {
             var c = new Commit();
@@ -147,17 +159,19 @@ public class GitHubClient implements Client {
         if (config.isCache()) {
             Files.deleteIfExists(cacheFile);
             Files.createDirectories(cacheFile.getParent());
+            output.debug("Write cache file: " + cacheFile);
             OBJECT_MAPPER.writeValue(cacheFile.toFile(), result);
         }
         return result;
     }
 
-    private GHRepository getRepository(String repository) throws Exception {
+    private GHRepository getRepository(MessageWriter output, String repository) throws Exception {
         // TODO: cache
         var repo = REPOSITORIES.get(repository);
         if (repo != null) {
             return repo;
         }
+        output.debug("Client get repository: " + repository);
         repo = client.getRepository(repository);
         REPOSITORIES.put(repository, repo);
         return repo;
