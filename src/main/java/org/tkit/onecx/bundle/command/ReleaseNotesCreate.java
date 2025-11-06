@@ -2,8 +2,6 @@ package org.tkit.onecx.bundle.command;
 
 import gen.org.tkit.onecx.bundle.model.BundleProduct;
 
-import io.quarkus.cli.common.HelpOption;
-import io.quarkus.cli.common.OutputOptionMixin;
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.ReflectionValueResolver;
 import org.tkit.onecx.bundle.client.Client;
@@ -51,14 +49,84 @@ public class ReleaseNotesCreate extends AbstractCommand  {
             }
         }
 
-        var request = createRequest();
+        var client = ClientFactory.createClient(
+                ClientConfig.builder(commonOption.token).cache(!option.noCache).cacheDir(cacheOption.cacheDir).build());
+
+        var request = createRequest(client);
         if (request == null) {
             return CommandLine.ExitCode.SOFTWARE;
         }
-
         output.debug("Create product components for bundle name: " + request.getName() + ", version: " + request.getVersion());
 
         // load products information
+        if (loadProductData(client, request)) {
+            return CommandLine.ExitCode.SOFTWARE;
+        }
+
+        // compare product component versions ( load commits )
+        output.debug("Compare components of the products.");
+        compareProductComponents(client, request);
+
+        // load product component pull-requests and create component changes
+        output.debug("Load product components pull-request.");
+        loadComponentsPr(client, request);
+
+        // Generate report base on the template
+        output.debug("Generate template for bundle.");
+        if (generateTemplate(request)) {
+            return CommandLine.ExitCode.SOFTWARE;
+        }
+
+        return CommandLine.ExitCode.OK;
+    }
+
+
+    private ReleaseContainer createRequest(Client client) throws Exception {
+        var head = BundleUtil.loadBundle(output, bundleOption.headFile, bundleOption.ignoredProducts);
+        if (head == null || head.getProducts().isEmpty()) {
+            output.warn("Head bundle '" + bundleOption.headFile + "' is empty or does not have any products");
+            return null;
+        }
+
+        var base = BundleUtil.loadBundle(output, bundleOption.baseFile, bundleOption.ignoredProducts);
+        if (base == null) {
+            return null;
+        }
+
+        if (head.getVersion().equals(base.getVersion())) {
+            output.warn("All Bundles are of the same version.");
+            return null;
+        }
+
+        var products = new HashMap<String, Product>();
+        for (var entry : head.getProducts().entrySet()) {
+            var key = entry.getKey();
+            var value = entry.getValue();
+            var b = base.getProducts().get(entry.getKey());
+            if (b == null) {
+                output.debug("Exclude product '" + key + "' from release notes. Product not found in 'base' bundle.");
+                continue;
+            }
+            if (value.getVersion().equals(b.getVersion())) {
+                output.debug("The product '" + key + "' will be excluded from the release notes, as all products have the same version.");
+                continue;
+            }
+
+
+            var product = new Product(key, value, loadProductData(client, b), loadProductData(client, value));
+            products.put(key, product);
+        }
+
+        return new ReleaseContainer(base, head, products);
+    }
+
+    private ProductData loadProductData(Client client, BundleProduct bp) throws Exception {
+        var data = client.downloadFile(output, bp.getRepo(), bp.getVersion(), option.pathChartLock);
+        ChartLock chartLock = HelmUtil.loadChartLock(data);
+        return new ProductData(bp, chartLock);
+    }
+
+    private boolean loadProductData(Client client, ReleaseContainer request) throws Exception {
         for (var e : request.getProducts().entrySet()) {
             var product = e.getValue();
             boolean mainVersion = product.getHead().getBundle().getVersion().equals(option.mainVersion);
@@ -71,7 +139,7 @@ public class ReleaseNotesCreate extends AbstractCommand  {
                 }
 
                 // create component repository owner/product -> owner/component
-                var repo = request.getClient().createRepository(output, product.getBundle().getRepo(), dep.getName());
+                var repo = client.createRepository(output, product.getBundle().getRepo(), dep.getName());
 
                 product.getComponents().put(dep.getName(), new Component(dep.getName(), dep, repo));
             }
@@ -95,10 +163,10 @@ public class ReleaseNotesCreate extends AbstractCommand  {
                     continue;
                 }
 
-                var firstCommit = request.getClient().firstCommit(output, component.getRepository());
+                var firstCommit = client.firstCommit(output, component.getRepository());
                 if (firstCommit == null) {
                     output.error("No first commit found for component " + component.getName());
-                    return CommandLine.ExitCode.SOFTWARE;
+                    return true;
                 }
 
                 var base = new Dependency();
@@ -108,23 +176,24 @@ public class ReleaseNotesCreate extends AbstractCommand  {
                 component.setBase(base);
             }
         }
+        return false;
+    }
 
-        // compare product component versions ( load commits )
-        output.debug("Compare components of the products.");
+    private void compareProductComponents(Client client, ReleaseContainer request) throws Exception {
         for (var product : request.getProducts().values()) {
             for (var component : product.getComponents().values()) {
-                var compare = request.getClient().compareCommits(output, component.getRepository(), component.getBase().getVersion(), component.getHead().getVersion());
+                var compare = client.compareCommits(output, component.getRepository(), component.getBase().getVersion(), component.getHead().getVersion());
                 component.setCompare(compare);
-                component.setCommits(compare.getCommits());
+                component.getCommits().addAll(compare.getCommits());
             }
         }
+    }
 
-        // load product component pull-requests and create component changes
-        output.debug("Load product components pull-request.");
+    private void loadComponentsPr(Client client, ReleaseContainer request) throws Exception {
         for (var product : request.getProducts().values()) {
             for (var component : product.getComponents().values()) {
                 for (var commit : component.getCommits()) {
-                    var prs = request.getClient().pullRequestByCommitRepo(output, component.getRepository(), commit.getSha());
+                    var prs = client.pullRequestByCommitRepo(output, component.getRepository(), commit.getSha());
                     if (prs.isEmpty()) {
                         continue;
                     }
@@ -133,18 +202,18 @@ public class ReleaseNotesCreate extends AbstractCommand  {
                 }
             }
         }
+    }
 
-        // Generate report base on the template
-        output.debug("Generate template for bundle.");
+    private boolean generateTemplate(ReleaseContainer request) throws Exception {
         if (!Files.exists(Paths.get(option.templateFile))) {
             output.error("Template file '" + option.templateFile + "' does not exists.");
-            return CommandLine.ExitCode.SOFTWARE;
+            return true;
         }
         var templateContent = Files.readString(Paths.get(option.templateFile));
 
         if (templateContent.isEmpty()) {
             output.error("Empty template file.");
-            return CommandLine.ExitCode.SOFTWARE;
+            return true;
         }
 
         var result = Engine.builder()
@@ -164,63 +233,7 @@ public class ReleaseNotesCreate extends AbstractCommand  {
             output.out().println(result);
         }
 
-        return CommandLine.ExitCode.OK;
+        return false;
     }
-
-
-    private CreateNotesRequest createRequest() throws Exception {
-        var head = BundleUtil.loadBundle(output, bundleOption.headFile, bundleOption.ignoredProducts);
-        if (head == null || head.getProducts().isEmpty()) {
-            output.warn("Head bundle '" + bundleOption.headFile + "' is empty or does not have any products");
-            return null;
-        }
-
-        var base = BundleUtil.loadBundle(output, bundleOption.baseFile, bundleOption.ignoredProducts);
-        if (base == null) {
-            return null;
-        }
-
-        if (head.getVersion().equals(base.getVersion())) {
-            output.warn("All Bundles are of the same version.");
-            return null;
-        }
-
-        var client = ClientFactory.createClient(
-                        ClientConfig
-                                .builder(commonOption.token)
-                                .cache(!option.noCache)
-                                .cacheDir(cacheOption.cacheDir)
-                                .build()
-                    );
-
-
-        var products = new HashMap<String, Product>();
-        for (var entry : head.getProducts().entrySet()) {
-            var key = entry.getKey();
-            var value = entry.getValue();
-            var b = base.getProducts().get(entry.getKey());
-            if (b == null) {
-                output.debug("Exclude product '" + key + "' from release notes. Product not found in 'base' bundle.");
-                continue;
-            }
-            if (value.getVersion().equals(b.getVersion())) {
-                output.debug("The product '" + key + "' will be excluded from the release notes, as all products have the same version.");
-                continue;
-            }
-
-
-            var product = new Product(key, value, loadProductData(client, b), loadProductData(client, value));
-            products.put(key, product);
-        }
-
-        return new CreateNotesRequest(client, base, head, products);
-    }
-
-    private ProductData loadProductData(Client client, BundleProduct bp) throws Exception {
-        var data = client.downloadFile(output, bp.getRepo(), bp.getVersion(), option.pathChartLock);
-        ChartLock chartLock = HelmUtil.loadChartLock(data);
-        return new ProductData(bp, chartLock);
-    }
-
 
 }

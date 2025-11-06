@@ -1,6 +1,5 @@
 package org.tkit.onecx.bundle.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.tkit.onecx.bundle.client.Commit;
 import org.tkit.onecx.bundle.client.PullRequest;
@@ -13,11 +12,6 @@ public class Change {
     public Change(Commit commit, PullRequest pr) {
         this.commit = commit;
         this.pr = pr;
-    }
-
-    @JsonIgnore
-    public boolean isPr() {
-        return pr != null;
     }
 
     public PullRequest getPr() {

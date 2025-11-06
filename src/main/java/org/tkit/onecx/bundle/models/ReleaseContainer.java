@@ -2,27 +2,24 @@ package org.tkit.onecx.bundle.models;
 
 import gen.org.tkit.onecx.bundle.model.Bundle;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import org.tkit.onecx.bundle.client.Client;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RegisterForReflection
-public class CreateNotesRequest {
+public class ReleaseContainer {
 
-    private final Client client;
     private final Bundle base;
     private final Bundle head;
     private final Map<String, Product> products;
 
-    public CreateNotesRequest(Client client, Bundle base, Bundle head, Map<String, Product> products) {
-        this.client = client;
+    public ReleaseContainer(Bundle base, Bundle head, Map<String, Product> products) {
         this.base = base;
         this.head = head;
-        this.products = products;
-    }
-
-    public Client getClient() {
-        return client;
+        this.products = new HashMap<>();
+        if (products != null) {
+            this.products.putAll(products);
+        }
     }
 
     public Bundle getBase() {

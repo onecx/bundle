@@ -2,7 +2,9 @@ package org.tkit.onecx.bundle.utils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -12,7 +14,8 @@ import io.quarkus.devtools.messagewriter.MessageWriter;
 
 public class BundleUtil {
 
-    private static final ObjectReader BUNDLE_READER = new ObjectMapper(new YAMLFactory()).readerFor(Bundle.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(new YAMLFactory());
+    private static final ObjectReader BUNDLE_READER = OBJECT_MAPPER.readerFor(Bundle.class);
 
     public static Bundle loadBundle(MessageWriter output, String file, String ... ignoreProducts) throws Exception {
         var bf = Path.of(file);

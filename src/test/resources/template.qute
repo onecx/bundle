@@ -7,7 +7,7 @@
 ### {component.name} {component.base.version}...{component.head.version}
 
 {#for change in component.changes}
-* [{change.pr.number}]({change.pr.htmlUrl}) - { change.pr.title} {#for label in change.labels} `{{ $label }}` {/for}
+* [{change.pr.number}]({change.pr.htmlUrl}) - {change.pr.title} {#for label in change.pr.labels}`{label}` {/for}
 {/for}
 
 {/for}

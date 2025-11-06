@@ -6,7 +6,8 @@ import org.tkit.onecx.bundle.command.option.BundleOption;
 import org.tkit.onecx.bundle.utils.BundleUtil;
 import picocli.CommandLine;
 
-import java.util.Objects;
+import java.util.*;
+
 
 @CommandLine.Command(name = "create", description = "Compare two bundles and creates a diff report")
 public class DiffCreate extends AbstractCommand {
@@ -26,41 +27,59 @@ public class DiffCreate extends AbstractCommand {
             return CommandLine.ExitCode.SOFTWARE;
         }
 
-        if (base.equals(head)) {
+        var diff = bundleDiff(base, head);
+
+        if (diff.changes.isEmpty() && diff.add.isEmpty() && diff.removed.isEmpty()) {
             output.info("No changes found");
-        } else {
-            printDiff(base, head);
+            return CommandLine.ExitCode.OK;
         }
 
+        output.info("%s [%s] ->  %s [%s]", base.getName(), base.getVersion(), head.getName(), head.getVersion());
+         if (!diff.changes.isEmpty()) {
+            output.info("Changed products:");
+            diff.changes.forEach(x -> {
+                output.info("\t- %s [%s] -> [%s]", x.base.getName(), x.base.getVersion(), x.head.getVersion());
+            });
+        }
+
+        if (!diff.add.isEmpty()) {
+            output.info("New products:");
+            diff.add.forEach(x -> {
+                output.info("\t- %s [%s]", x.getName(), x.getVersion());
+            });
+        }
+
+        if (!diff.removed.isEmpty()) {
+            output.info("Removed products:");
+            diff.removed.forEach(x -> {
+                output.info("\t- %s [%s]", x.getName(), x.getVersion());
+            });
+        }
         return CommandLine.ExitCode.OK;
     }
 
-    private void printDiff(Bundle base, Bundle head) {
-        if (!Objects.equals(base.getVersion(), head.getVersion())) {
-            output.info("Version changed:\n  Base: " + base.getVersion() + "\n  Head: " + head.getVersion() + "\n");
-        }
+    private BundleDiff bundleDiff(Bundle base, Bundle head) {
 
+        var changes = new ArrayList<ChangeProduct>();
         for (String key : head.getProducts().keySet()) {
-            BundleProduct baseProduct = base.getProducts().get(key);
-            BundleProduct headProduct = head.getProducts().get(key);
-
-            if (baseProduct == null) {
-                output.info("New product added: " + key);
+            var bp = base.getProducts().get(key);
+            var hp = head.getProducts().get(key);
+            if (bp == null || hp == null) {
                 continue;
             }
-
-            if (!headProduct.equals(baseProduct)) {
-                output.info("Product " + key + " changed:\n");
-                if (!Objects.equals(baseProduct.getVersion(), headProduct.getVersion())) {
-                    output.info("  Version: " + baseProduct.getVersion() + " → " + headProduct.getVersion() + "\n");
-                }
+            if (Objects.equals(bp.getVersion(), hp.getVersion())) {
+                continue;
             }
+            changes.add(new ChangeProduct(bp, hp));
         }
 
-        for (String key : base.getProducts().keySet()) {
-            if (!head.getProducts().containsKey(key)) {
-                output.info("Product removed: " + key + "\n");
-            }
-        }
+        var add = head.getProducts().keySet().stream().filter(x -> !base.getProducts().containsKey(x)).map(x -> head.getProducts().get(x)).toList();
+        var removed = base.getProducts().keySet().stream().filter(x -> !head.getProducts().containsKey(x)).map(x -> base.getProducts().get(x)).toList();
+
+        return new BundleDiff(changes, add, removed);
     }
+
+    public record BundleDiff(List<ChangeProduct> changes, List<BundleProduct> add, List<BundleProduct> removed) {}
+
+    public record ChangeProduct(BundleProduct base, BundleProduct head) {}
 }

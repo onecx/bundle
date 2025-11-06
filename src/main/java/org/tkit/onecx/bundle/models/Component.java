@@ -13,19 +13,20 @@ import java.util.Map;
 
 @RegisterForReflection
 public class Component {
-    private String name;
-    private String repository;
+    private final String name;
+    private final String repository;
     private Dependency base;
-    private Dependency head;
+    private final Dependency head;
     private CommitsComparison compare;
-    private List<Change> changes;
-    private List<Commit> commits;
-    private Map<String, List<PullRequest>> pullRequests;
+    private final List<Change> changes;
+    private final List<Commit> commits;
+    private final Map<String, List<PullRequest>> pullRequests;
 
     public Component(String name, Dependency head, String repository) {
         this.name = name;
         this.head = head;
         this.base = null;
+        this.compare = null;
         this.changes = new ArrayList<>();
         this.pullRequests = new HashMap<>();
         this.commits = new ArrayList<>();
@@ -34,10 +35,6 @@ public class Component {
 
     public List<Commit> getCommits() {
         return commits;
-    }
-
-    public void setCommits(List<Commit> commits) {
-        this.commits = commits;
     }
 
     public CommitsComparison getCompare() {
