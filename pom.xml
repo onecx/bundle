@@ -8,6 +8,25 @@
     <artifactId>onecx-bundle</artifactId>
     <version>999-SNAPSHOT</version>
 
+    <name>onecx-bundle</name>
+    <description>Onecx release bundle application</description>
+    <url>https://github.com/onecx/bundle</url>
+    <inceptionYear>2025</inceptionYear>
+    <developers>
+        <developer>
+            <name>Andrej Petras</name>
+            <email>andrej@lorislab.org</email>
+            <organizationUrl>https://www.lorislab.org</organizationUrl>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <properties>
         <!-- build -->
         <format.skip>false</format.skip>
@@ -34,17 +53,18 @@
         <maven.formatter-plugin.version>2.26.0</maven.formatter-plugin.version>
         <maven.impsort-plugin.version>1.12.0</maven.impsort-plugin.version>
         <maven.enforcer-plugin.version>3.5.0</maven.enforcer-plugin.version>
+        <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
 
         <!-- Maven central release configuration -->
         <source-plugin.version>3.3.1</source-plugin.version>
-        <javadoc-plugin.version>3.11.2</javadoc-plugin.version>
 
         <!-- Other -->
-        <assertj.version>3.27.3</assertj.version>
+        <nisse-plugin3.version>0.4.0</nisse-plugin3.version>
+        <jreleaser-maven-plugin.version>1.21.0</jreleaser-maven-plugin.version>
 
-        <!-- Jacoco/Sonar -->
-        <sonar.cpd.exclusions>**/mapper/**,**/mappers/**,**/dtos/**,**/dto/**,**/gen/**</sonar.cpd.exclusions>
-        <sonar.coverage.exclusions>**/model*/**/*.*,**/resources/**/*.*,**/JaxRsActivator*,**/mapper/**,**/mappers/**,**/gen/**,**/dtos/**,**/dto/**</sonar.coverage.exclusions>
+        <!-- jrelease -->
+        <executable-suffix/>
+        <distribution.directory>${project.build.directory}/distributions</distribution.directory>
     </properties>
 
     <dependencyManagement>
@@ -113,6 +133,13 @@
     </dependencies>
 
     <build>
+        <extensions>
+            <extension>
+                <groupId>eu.maveniverse.maven.nisse</groupId>
+                <artifactId>extension</artifactId>
+                <version>${nisse-plugin3.version}</version>
+            </extension>
+        </extensions>
         <plugins>
             <plugin>
                 <groupId>io.quarkus</groupId>
@@ -156,7 +183,6 @@
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <!--suppress UnresolvedMavenProperty -->
                         <maven.home>${maven.home}</maven.home>
-                        <quarkus.jacoco.excludes>${sonar.coverage.exclusions}</quarkus.jacoco.excludes>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -178,8 +204,6 @@
                                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <maven.home>${maven.home}</maven.home>
-                                <quarkus.jacoco.excludes>${sonar.coverage.exclusions}</quarkus.jacoco.excludes>
-                                <tkit.test.integration-test-enabled>true</tkit.test.integration-test-enabled>
                             </systemPropertyVariables>
                         </configuration>
                     </execution>
@@ -226,8 +250,102 @@
             </activation>
             <properties>
                 <skipITs>false</skipITs>
-                <quarkus.package.type>native</quarkus.package.type>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
             </properties>
+        </profile>
+        <profile>
+            <id>dist</id>
+            <build>
+                <finalName>bundle-${project.version}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>eu.maveniverse.maven.plugins</groupId>
+                        <artifactId>nisse-plugin3</artifactId>
+                        <version>${nisse-plugin3.version}</version>
+                        <executions>
+                            <execution>
+                                <id>inject-properties</id>
+                                <goals>
+                                    <goal>inject-properties</goal>
+                                </goals>
+                                <phase>validate</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>${maven-assembly-plugin.version}</version>
+                        <configuration>
+                            <attach>false</attach>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <outputDirectory>${distribution.directory}</outputDirectory>
+                            <workDirectory>${project.build.directory}/assembly/work</workDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-native</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/assembly-native.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>make-jvm</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/assembly-jvm.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jreleaser</groupId>
+                        <artifactId>jreleaser-maven-plugin</artifactId>
+                        <version>${jreleaser-maven-plugin.version}</version>
+                        <configuration>
+                            <jreleaser>
+                                <release>
+                                    <github>
+                                        <changelog>
+                                            <formatted>ALWAYS</formatted>
+                                            <preset>conventional-commits</preset>
+                                        </changelog>
+                                    </github>
+                                </release>
+                                <distributions>
+                                    <app>
+                                        <type>BINARY</type>
+                                        <artifacts>
+                                            <artifact>
+                                                <path>${distribution.directory}/bundle-${project.version}-linux-x86_64.tar.gz</path>
+                                                <platform>linux-x86_64</platform>
+                                            </artifact>
+                                        </artifacts>
+                                    </app>
+                                </distributions>
+                            </jreleaser>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
