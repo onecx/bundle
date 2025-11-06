@@ -340,6 +340,14 @@
                                             </artifact>
                                         </artifacts>
                                     </app>
+                                    <jvm>
+                                        <type>SINGLE_JAR</type>
+                                        <artifacts>
+                                            <artifact>
+                                                <path>${distribution.directory}/bundle-${project.version}-jvm.tar.gz</path>
+                                            </artifact>
+                                        </artifacts>
+                                    </jvm>
                                 </distributions>
                             </jreleaser>
                         </configuration>
