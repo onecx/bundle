@@ -1,7 +1,10 @@
 package org.tkit.onecx.bundle.helm;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 import java.util.List;
 
+@RegisterForReflection
 public class ChartLock {
     private String digest;
     private String generated;

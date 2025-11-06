@@ -25,16 +25,9 @@ import picocli.CommandLine;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "create", description = "Create release notes for the defined bundle")
-public class ReleaseNotesCreate implements Callable<Integer>  {
-
-    @CommandLine.Mixin
-    protected HelpOption helpOption;
-
-    @CommandLine.Mixin(name = "output")
-    OutputOptionMixin output;
+public class ReleaseNotesCreate extends AbstractCommand  {
 
     @CommandLine.Mixin
     protected CacheOption cacheOption;
@@ -48,14 +41,8 @@ public class ReleaseNotesCreate implements Callable<Integer>  {
     @CommandLine.Mixin
     protected ReleaseNotesCreateOption option;
 
-    @CommandLine.Spec
-    protected CommandLine.Model.CommandSpec spec;
-
     @Override
-    public Integer call() throws Exception {
-
-        output.throwIfUnmatchedArguments(spec.commandLine());
-
+    public Integer execute() throws Exception {
         if (!option.noCache) {
             if (!SystemUtil.createDirectory(cacheOption.cacheDir)) {
                 output.debug("Cache directory '%s' already exists.", cacheOption.cacheDir);

@@ -1,8 +1,12 @@
 package org.tkit.onecx.bundle.client;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@RegisterForReflection
 public class PullRequest {
     private long id;
     private int number;

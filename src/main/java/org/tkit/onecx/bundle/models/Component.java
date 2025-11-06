@@ -1,5 +1,6 @@
 package org.tkit.onecx.bundle.models;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.tkit.onecx.bundle.client.Commit;
 import org.tkit.onecx.bundle.client.CommitsComparison;
 import org.tkit.onecx.bundle.client.PullRequest;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@RegisterForReflection
 public class Component {
     private String name;
     private String repository;

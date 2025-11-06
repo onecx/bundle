@@ -1,7 +1,10 @@
 package org.tkit.onecx.bundle.client;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 import java.util.List;
 
+@RegisterForReflection
 public class CommitsComparison {
     private int totalCommits;
     private String status;

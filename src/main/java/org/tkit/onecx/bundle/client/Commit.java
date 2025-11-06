@@ -1,5 +1,8 @@
 package org.tkit.onecx.bundle.client;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class Commit {
     private String sha;
     private String htmlUrl;

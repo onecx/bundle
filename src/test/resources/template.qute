@@ -6,6 +6,10 @@
 {#for component in product.components.values}
 ### {component.name} {component.base.version}...{component.head.version}
 
+{#for change in component.changes}
+* [{change.pr.number}]({change.pr.htmlUrl}) - { change.pr.title} {#for label in change.labels} `{{ $label }}` {/for}
+{/for}
+
 {/for}
 
 {/for}

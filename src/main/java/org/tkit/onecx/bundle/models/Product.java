@@ -1,10 +1,12 @@
 package org.tkit.onecx.bundle.models;
 
 import gen.org.tkit.onecx.bundle.model.BundleProduct;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@RegisterForReflection
 public class Product {
     private final String key;
     private final BundleProduct bundle;

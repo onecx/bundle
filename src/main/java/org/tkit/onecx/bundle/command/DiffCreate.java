@@ -2,38 +2,20 @@ package org.tkit.onecx.bundle.command;
 
 import gen.org.tkit.onecx.bundle.model.Bundle;
 import gen.org.tkit.onecx.bundle.model.BundleProduct;
-import io.quarkus.cli.common.HelpOption;
-import io.quarkus.cli.common.OutputOptionMixin;
 import org.tkit.onecx.bundle.command.option.BundleOption;
-import org.tkit.onecx.bundle.command.option.CommonOption;
 import org.tkit.onecx.bundle.utils.BundleUtil;
 import picocli.CommandLine;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "create", description = "Compare two bundles and creates a diff report")
-public class DiffCreate implements Callable<Integer> {
+public class DiffCreate extends AbstractCommand {
 
     @CommandLine.Mixin
     protected BundleOption bundleOption;
 
-    @CommandLine.Mixin(name = "output")
-    OutputOptionMixin output;
-
-    @CommandLine.Mixin
-    protected CommonOption commonOption;
-
-    @CommandLine.Mixin
-    protected HelpOption helpOption;
-
-    @CommandLine.Spec
-    protected CommandLine.Model.CommandSpec spec;
-
     @Override
-    public Integer call() throws Exception {
-
-        output.throwIfUnmatchedArguments(spec.commandLine());
+    public Integer execute() throws Exception {
 
         var base = BundleUtil.loadBundle(output, bundleOption.baseFile, bundleOption.ignoredProducts);
         if (base == null) {

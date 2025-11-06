@@ -1,10 +1,12 @@
 package org.tkit.onecx.bundle.models;
 
 import gen.org.tkit.onecx.bundle.model.Bundle;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.tkit.onecx.bundle.client.Client;
 
 import java.util.Map;
 
+@RegisterForReflection
 public class CreateNotesRequest {
 
     private final Client client;

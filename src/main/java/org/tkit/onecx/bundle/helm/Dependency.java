@@ -1,5 +1,8 @@
 package org.tkit.onecx.bundle.helm;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class Dependency {
     private String name;
     private String repository;

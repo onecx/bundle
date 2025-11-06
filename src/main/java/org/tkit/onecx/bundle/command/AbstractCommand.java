@@ -1,21 +1,24 @@
 package org.tkit.onecx.bundle.command;
 
+import io.quarkus.cli.common.HelpOption;
 import io.quarkus.cli.common.OutputOptionMixin;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
 
-public class Common implements Callable<Integer>  {
+public class AbstractCommand implements Callable<Integer>  {
 
-    @CommandLine.Mixin(name = "output")
-    OutputOptionMixin output;
+    @CommandLine.Mixin
+    protected HelpOption helpOption;
 
     @CommandLine.Spec
     protected CommandLine.Model.CommandSpec spec;
 
+    @CommandLine.Mixin(name = "output")
+    protected OutputOptionMixin output;
+
     @Override
     public Integer call() throws Exception {
-
         output.throwIfUnmatchedArguments(spec.commandLine());
 
         if (output.isVerbose()) {
@@ -26,6 +29,10 @@ public class Common implements Callable<Integer>  {
             });
         }
 
-        return CommandLine.ExitCode.OK;
+        return execute();
     }
+
+    public Integer execute() throws Exception {
+        return CommandLine.ExitCode.OK;
+    };
 }
