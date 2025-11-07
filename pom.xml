@@ -37,7 +37,7 @@
 
         <!-- Quarkus configuration -->
         <quarkus.version>3.29.1</quarkus.version>
-        <quarkiverse.quarkus-openapi-generator.version>2.13.0</quarkiverse.quarkus-openapi-generator.version>
+        <quarkiverse.quarkus-openapi-generator.version>2.13.0-lts</quarkiverse.quarkus-openapi-generator.version>
         <quarkiverse.quarkus-github-api.version>1.330.0</quarkiverse.quarkus-github-api.version>
 
         <!-- Maven configuration -->
