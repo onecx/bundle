@@ -30,16 +30,14 @@
     <properties>
         <!-- build -->
         <format.skip>false</format.skip>
-        <enforcer.skip>false</enforcer.skip>
-        <enforce-test-deps-scope.skip>${enforcer.skip}</enforce-test-deps-scope.skip>
         <skipTests>false</skipTests>
         <skipITs>${skipTests}</skipITs>
         <skipUTs>${skipTests}</skipUTs>
         <skipDocs>false</skipDocs>
 
         <!-- Quarkus configuration -->
-        <quarkus.version>3.29.0</quarkus.version>
-        <quarkiverse.quarkus-openapi-generator.version>2.10.0-lts</quarkiverse.quarkus-openapi-generator.version>
+        <quarkus.version>3.29.1</quarkus.version>
+        <quarkiverse.quarkus-openapi-generator.version>2.13.0</quarkiverse.quarkus-openapi-generator.version>
         <quarkiverse.quarkus-github-api.version>1.330.0</quarkiverse.quarkus-github-api.version>
 
         <!-- Maven configuration -->
@@ -48,18 +46,16 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
         <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler-plugin.version>3.14.0</maven.compiler-plugin.version>
-        <maven.surefire-plugin.version>3.5.3</maven.surefire-plugin.version>
+        <maven.compiler-plugin.version>3.14.1</maven.compiler-plugin.version>
         <maven.formatter-plugin.version>2.29.0</maven.formatter-plugin.version>
         <maven.impsort-plugin.version>1.12.0</maven.impsort-plugin.version>
-        <maven.enforcer-plugin.version>3.5.0</maven.enforcer-plugin.version>
         <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
 
         <!-- Maven central release configuration -->
         <source-plugin.version>3.3.1</source-plugin.version>
 
         <!-- Other -->
-        <nisse-plugin3.version>0.4.0</nisse-plugin3.version>
+        <nisse-plugin3.version>0.6.1</nisse-plugin3.version>
         <jreleaser-maven-plugin.version>1.21.0</jreleaser-maven-plugin.version>
 
         <!-- jrelease -->
@@ -172,42 +168,6 @@
                         </annotationProcessorPath>
                     </annotationProcessorPaths>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven.surefire-plugin.version}</version>
-                <configuration>
-                    <skipTests>${skipUTs}</skipTests>
-                    <systemPropertyVariables>
-                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                        <!--suppress UnresolvedMavenProperty -->
-                        <maven.home>${maven.home}</maven.home>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${maven.surefire-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                        <configuration>
-                            <skipTests>${skipTests}</skipTests>
-                            <skipITs>${skipITs}</skipITs>
-                            <systemPropertyVariables>
-                                <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
-                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                                <!--suppress UnresolvedMavenProperty -->
-                                <maven.home>${maven.home}</maven.home>
-                            </systemPropertyVariables>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>net.revelc.code.formatter</groupId>
