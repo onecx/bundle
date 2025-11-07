@@ -4,28 +4,86 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.tkit.onecx</groupId>
-        <artifactId>onecx-quarkus3-parent</artifactId>
-        <version>1.3.0</version>
-    </parent>
-
+    <groupId>org.tkit.onecx</groupId>
     <artifactId>onecx-bundle</artifactId>
     <version>999-SNAPSHOT</version>
 
+    <name>onecx-bundle</name>
+    <description>Onecx release bundle application</description>
+    <url>https://github.com/onecx/bundle</url>
+    <inceptionYear>2025</inceptionYear>
+    <developers>
+        <developer>
+            <name>Andrej Petras</name>
+            <email>andrej@lorislab.org</email>
+            <organizationUrl>https://www.lorislab.org</organizationUrl>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <!-- build -->
+        <format.skip>false</format.skip>
+        <enforcer.skip>false</enforcer.skip>
+        <enforce-test-deps-scope.skip>${enforcer.skip}</enforce-test-deps-scope.skip>
+        <skipTests>false</skipTests>
+        <skipITs>${skipTests}</skipITs>
+        <skipUTs>${skipTests}</skipUTs>
+        <skipDocs>false</skipDocs>
+
+        <!-- Quarkus configuration -->
+        <quarkus.version>3.29.0</quarkus.version>
+        <quarkiverse.quarkus-openapi-generator.version>2.10.0-lts</quarkiverse.quarkus-openapi-generator.version>
+        <quarkiverse.quarkus-github-api.version>1.330.0</quarkiverse.quarkus-github-api.version>
+
+        <!-- Maven configuration -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <maven.compiler-plugin.version>3.14.0</maven.compiler-plugin.version>
+        <maven.surefire-plugin.version>3.5.3</maven.surefire-plugin.version>
+        <maven.formatter-plugin.version>2.26.0</maven.formatter-plugin.version>
+        <maven.impsort-plugin.version>1.12.0</maven.impsort-plugin.version>
+        <maven.enforcer-plugin.version>3.5.0</maven.enforcer-plugin.version>
+        <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
+
+        <!-- Maven central release configuration -->
+        <source-plugin.version>3.3.1</source-plugin.version>
+
+        <!-- Other -->
+        <nisse-plugin3.version>0.4.0</nisse-plugin3.version>
+        <jreleaser-maven-plugin.version>1.21.0</jreleaser-maven-plugin.version>
+
+        <!-- jrelease -->
+        <executable-suffix/>
+        <distribution.directory>${project.build.directory}/distributions</distribution.directory>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <dependency>
-            <groupId>org.tkit.onecx.quarkus</groupId>
-            <artifactId>onecx-core</artifactId>
-        </dependency>
         <!-- QUARKUS -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-openapi</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -35,34 +93,35 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-picocli</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.kohsuke</groupId>-->
-<!--            <artifactId>github-api</artifactId>-->
-<!--            <version>1.327</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-qute</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-cli-common</artifactId>
+            <version>${quarkus.version}</version>
+        </dependency>
+
+        <!-- QUARKIVERSE -->
+        <dependency>
+            <groupId>io.quarkiverse.openapi.generator</groupId>
+            <artifactId>quarkus-openapi-generator</artifactId>
+            <version>${quarkiverse.quarkus-openapi-generator.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.quarkiverse.githubapi</groupId>
             <artifactId>quarkus-github-api</artifactId>
-            <version>1.326.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.18.2</version>
+            <version>${quarkiverse.quarkus-github-api.version}</version>
         </dependency>
         <!-- OTHER -->
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.spullara.mustache.java</groupId>
-            <artifactId>compiler</artifactId>
-            <version>0.9.10</version>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
 
         <!-- TEST -->
@@ -74,66 +133,227 @@
     </dependencies>
 
     <build>
-      <plugins>
-        <plugin>
-            <groupId>org.tkit.maven</groupId>
-            <artifactId>tkit-docs-quarkus-plugin</artifactId>
-            <executions>
-                <execution>
-                    <configuration>
-                        <skipDocs>true</skipDocs>
-                    </configuration>
-                    <id>docs</id>
-                    <phase>prepare-package</phase>
-                    <goals>
-                        <goal>docs</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
-        <plugin>
-        <groupId>org.openapitools</groupId>
-        <artifactId>openapi-generator-maven-plugin</artifactId>
-        <configuration>
-            <generatorName>jaxrs-spec</generatorName>
-            <generateApiTests>false</generateApiTests>
-            <generateApiDocumentation>false</generateApiDocumentation>
-            <generateModelTests>false</generateModelTests>
-            <generateModelDocumentation>false</generateModelDocumentation>
-            <generateSupportingFiles>false</generateSupportingFiles>
-            <addCompileSourceRoot>true</addCompileSourceRoot>
-            <library>quarkus</library>
-            <configOptions>
-                <sourceFolder>/</sourceFolder>
-                <openApiNullable>false</openApiNullable>
-                <returnResponse>true</returnResponse>
-                <useTags>true</useTags>
-                <interfaceOnly>true</interfaceOnly>
-                <serializableModel>true</serializableModel>
-                <singleContentTypes>true</singleContentTypes>
-                <dateLibrary>java8</dateLibrary>
-                <useMicroProfileOpenAPIAnnotations>true</useMicroProfileOpenAPIAnnotations>
-                <useJakartaEe>true</useJakartaEe>
-                <useSwaggerAnnotations>false</useSwaggerAnnotations>
-                <java17>true</java17>
-                <additionalModelTypeAnnotations>@io.quarkus.runtime.annotations.RegisterForReflection;</additionalModelTypeAnnotations>
-            </configOptions>
-        </configuration>
-        <executions>
-            <execution>
-                <id>models</id>
-                <goals>
-                    <goal>generate</goal>
-                </goals>
+        <extensions>
+            <extension>
+                <groupId>eu.maveniverse.maven.nisse</groupId>
+                <artifactId>extension</artifactId>
+                <version>${nisse-plugin3.version}</version>
+            </extension>
+        </extensions>
+        <plugins>
+            <plugin>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>generate-code</goal>
+                            <goal>generate-code-tests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler-plugin.version}</version>
                 <configuration>
-                    <inputSpec>src/main/openapi/onecx-bundle-models.yaml</inputSpec>
-                    <apiPackage>gen.org.tkit.onecx.bundle.model</apiPackage>
-                    <modelPackage>gen.org.tkit.onecx.bundle.model</modelPackage>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                    <annotationProcessorPaths>
+                        <annotationProcessorPath>
+                            <groupId>io.quarkus</groupId>
+                            <artifactId>quarkus-extension-processor</artifactId>
+                            <version>${quarkus.version}</version>
+                        </annotationProcessorPath>
+                    </annotationProcessorPaths>
                 </configuration>
-            </execution>
-        </executions>
-    </plugin>
-      </plugins>
-</build>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire-plugin.version}</version>
+                <configuration>
+                    <skipTests>${skipUTs}</skipTests>
+                    <systemPropertyVariables>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven.surefire-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <skipTests>${skipTests}</skipTests>
+                            <skipITs>${skipITs}</skipITs>
+                            <systemPropertyVariables>
+                                <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <maven.home>${maven.home}</maven.home>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>${maven.formatter-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.quarkus</groupId>
+                        <artifactId>quarkus-ide-config</artifactId>
+                        <version>${quarkus.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configFile>eclipse-format.xml</configFile>
+                    <lineEnding>LF</lineEnding>
+                    <skip>${format.skip}</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>impsort-maven-plugin</artifactId>
+                <version>${maven.impsort-plugin.version}</version>
+                <configuration>
+                    <groups>java.,javax.,jakarta.,org.,com.</groups>
+                    <staticGroups>*</staticGroups>
+                    <skip>${format.skip}</skip>
+                    <removeUnused>true</removeUnused>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
+            </properties>
+        </profile>
+        <profile>
+            <id>dist</id>
+            <build>
+                <finalName>bundle-${project.version}</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>eu.maveniverse.maven.plugins</groupId>
+                        <artifactId>nisse-plugin3</artifactId>
+                        <version>${nisse-plugin3.version}</version>
+                        <executions>
+                            <execution>
+                                <id>inject-properties</id>
+                                <goals>
+                                    <goal>inject-properties</goal>
+                                </goals>
+                                <phase>validate</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>${maven-assembly-plugin.version}</version>
+                        <configuration>
+                            <attach>false</attach>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <outputDirectory>${distribution.directory}</outputDirectory>
+                            <workDirectory>${project.build.directory}/assembly/work</workDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-native</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/assembly-native.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>make-jvm</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/assembly-jvm.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jreleaser</groupId>
+                        <artifactId>jreleaser-maven-plugin</artifactId>
+                        <version>${jreleaser-maven-plugin.version}</version>
+                        <configuration>
+                            <jreleaser>
+                                <release>
+                                    <github>
+                                        <changelog>
+                                            <formatted>ALWAYS</formatted>
+                                            <preset>conventional-commits</preset>
+                                        </changelog>
+                                    </github>
+                                </release>
+                                <distributions>
+                                    <app>
+                                        <type>BINARY</type>
+                                        <artifacts>
+                                            <artifact>
+                                                <path>${distribution.directory}/bundle-${project.version}-linux-x86_64.tar.gz</path>
+                                                <platform>linux-x86_64</platform>
+                                            </artifact>
+                                        </artifacts>
+                                    </app>
+                                    <jvm>
+                                        <type>SINGLE_JAR</type>
+                                        <artifacts>
+                                            <artifact>
+                                                <path>${distribution.directory}/bundle-${project.version}-jvm.tar.gz</path>
+                                            </artifact>
+                                        </artifacts>
+                                    </jvm>
+                                </distributions>
+                            </jreleaser>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
