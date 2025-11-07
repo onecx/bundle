@@ -3,8 +3,6 @@
 
 [![GitHub Release](https://img.shields.io/github/v/release/onecx/bundle?logo=github&style=for-the-badge)](https://github.com/onecx/bundle/releases/latest)
 [![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/onecx/bundle/build.yml?logo=github&style=for-the-badge)](https://github.com/onecx/bundle/actions?query=workflow%3Abuild)
-[![GitHub License](https://img.shields.io/github/license/onecx/bundle?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
-
 
 OneCX Bundle is a Java-based command-line interface (CLI) tool built using the Quarkus framework. It is designed to streamline the release creation process for OneCX platform components. This tool automates the generation of release artifacts, manages versioning, and integrates with CI/CD pipelines.
 
