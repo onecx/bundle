@@ -281,6 +281,7 @@
                         <artifactId>jreleaser-maven-plugin</artifactId>
                         <version>${jreleaser-maven-plugin.version}</version>
                         <configuration>
+                            <skipTag>true</skipTag>
                             <jreleaser>
                                 <release>
                                     <github>
