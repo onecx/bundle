@@ -3,8 +3,8 @@ package org.tkit.onecx.bundle.command;
 import io.quarkus.cli.common.HelpOption;
 import io.quarkus.cli.common.OutputOptionMixin;
 import io.quarkus.cli.common.OutputProvider;
-import io.quarkus.cli.common.VersionHelper;
 import io.quarkus.picocli.runtime.annotations.TopCommand;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
@@ -32,6 +32,9 @@ public class BundleCli implements OutputProvider, Callable<Integer> {
         System.setProperty("picocli.endofoptions.description", "End of command line options.");
     }
 
+    @ConfigProperty(name = "quarkus.application.version")
+    String version;
+
     @CommandLine.Mixin(name = "output")
     OutputOptionMixin output;
 
@@ -47,7 +50,7 @@ public class BundleCli implements OutputProvider, Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        output.info("%n@|bold OneCx Bundle CLI|@ version %s", VersionHelper.clientVersion());
+        output.info("%n@|bold OneCx Bundle CLI|@ version %s", version);
         output.info("");
         output.info("Manage OneCX bundles and releases.");
         output.info("Find more information at https://onecx.github.io/docs");

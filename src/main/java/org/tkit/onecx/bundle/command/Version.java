@@ -1,18 +1,19 @@
 package org.tkit.onecx.bundle.command;
 
-import static io.quarkus.cli.common.VersionHelper.clientVersion;
-
 import java.util.concurrent.Callable;
 
 import io.quarkus.cli.common.HelpOption;
 import io.quarkus.cli.common.OutputOptionMixin;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 
 @CommandLine.Command(name = "version", header = "Display CLI version information.", hidden = true)
 public class Version implements CommandLine.IVersionProvider, Callable<Integer> {
 
-    private static String version;
+
+    @ConfigProperty(name = "quarkus.application.version")
+    String version;
 
     @CommandLine.Mixin(name = "output")
     OutputOptionMixin output;
@@ -31,6 +32,6 @@ public class Version implements CommandLine.IVersionProvider, Callable<Integer> 
 
     @Override
     public String[] getVersion() throws Exception {
-        return new String[] { clientVersion() };
+        return new String[] { version };
     }
 }
