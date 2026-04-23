@@ -36,7 +36,7 @@
         <skipDocs>false</skipDocs>
 
         <!-- Quarkus configuration -->
-        <quarkus.version>3.34.5</quarkus.version>
+        <quarkus.version>3.35.0</quarkus.version>
         <quarkiverse.quarkus-openapi-generator.version>2.16.0</quarkiverse.quarkus-openapi-generator.version>
         <quarkiverse.quarkus-github-api.version>1.330.0</quarkiverse.quarkus-github-api.version>
 
