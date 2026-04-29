@@ -7,3 +7,5 @@ jobs:
   pr:
     uses: onecx/ci-java-lib/.github/workflows/cli-build-pr.yml@v1
     secrets: inherit
+    with:
+      java-version: '25'
