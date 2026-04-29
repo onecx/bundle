@@ -7,6 +7,7 @@
     <groupId>org.tkit.onecx</groupId>
     <artifactId>onecx-bundle</artifactId>
     <version>999-SNAPSHOT</version>
+    <packaging>quarkus</packaging>
 
     <name>onecx-bundle</name>
     <description>Onecx release bundle application</description>
@@ -42,9 +43,7 @@
 
         <!-- Maven configuration -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.release>25</maven.compiler.release>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler-plugin.version>3.15.0</maven.compiler-plugin.version>
         <maven.formatter-plugin.version>2.29.0</maven.formatter-plugin.version>
@@ -55,7 +54,7 @@
         <source-plugin.version>3.3.1</source-plugin.version>
 
         <!-- Other -->
-        <nisse-plugin3.version>0.8.1</nisse-plugin3.version>
+        <nisse-plugin3.version>0.8.4</nisse-plugin3.version>
         <jreleaser-maven-plugin.version>1.23.0</jreleaser-maven-plugin.version>
 
         <!-- jrelease -->
@@ -129,28 +128,12 @@
     </dependencies>
 
     <build>
-        <extensions>
-            <extension>
-                <groupId>eu.maveniverse.maven.nisse</groupId>
-                <artifactId>extension</artifactId>
-                <version>${nisse-plugin3.version}</version>
-            </extension>
-        </extensions>
         <plugins>
             <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
                 <version>${quarkus.version}</version>
                 <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>generate-code</goal>
-                            <goal>generate-code-tests</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
