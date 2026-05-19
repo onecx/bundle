@@ -54,7 +54,7 @@
         <source-plugin.version>3.3.1</source-plugin.version>
 
         <!-- Other -->
-        <nisse-plugin3.version>0.9.0</nisse-plugin3.version>
+        <nisse-plugin3.version>0.9.1</nisse-plugin3.version>
         <jreleaser-maven-plugin.version>1.24.0</jreleaser-maven-plugin.version>
 
         <!-- jrelease -->
