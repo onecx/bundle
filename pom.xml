@@ -55,7 +55,7 @@
 
         <!-- Other -->
         <nisse-plugin3.version>0.9.3</nisse-plugin3.version>
-        <jreleaser-maven-plugin.version>1.24.0</jreleaser-maven-plugin.version>
+        <jreleaser-maven-plugin.version>1.25.0</jreleaser-maven-plugin.version>
 
         <!-- jrelease -->
         <executable-suffix/>
